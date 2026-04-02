@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AcademicPro Proctor - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#002113",
+              "on-secondary-container": "#5c647a",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e2e7ff",
+              "surface-container-low": "#f2f3ff",
+              "on-surface-variant": "#45464d",
+              "outline": "#76777d",
+              "on-primary-fixed": "#00174b",
+              "surface-tint": "#0053db",
+              "error": "#ba1a1a",
+              "background": "#faf8ff",
+              "primary-fixed-dim": "#b4c5ff",
+              "on-surface": "#131b2e",
+              "on-secondary": "#ffffff",
+              "inverse-on-surface": "#eef0ff",
+              "primary": "#000000",
+              "on-background": "#131b2e",
+              "surface-dim": "#d2d9f4",
+              "inverse-surface": "#283044",
+              "surface-bright": "#faf8ff",
+              "on-error": "#ffffff",
+              "surface": "#faf8ff",
+              "on-primary-container": "#497cff",
+              "on-tertiary-container": "#009668",
+              "surface-variant": "#dae2fd",
+              "on-secondary-fixed": "#131b2e",
+              "inverse-primary": "#b4c5ff",
+              "tertiary": "#000000",
+              "on-primary-fixed-variant": "#003ea8",
+              "surface-container-highest": "#dae2fd",
+              "primary-fixed": "#dbe1ff",
+              "on-tertiary-fixed": "#002113",
+              "primary-container": "#00174b",
+              "secondary-container": "#dae2fd",
+              "secondary": "#565e74",
+              "secondary-fixed-dim": "#bec6e0",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "outline-variant": "#c6c6cd",
+              "tertiary-fixed-dim": "#4edea3",
+              "on-tertiary-fixed-variant": "#005236",
+              "secondary-fixed": "#dae2fd",
+              "on-secondary-fixed-variant": "#3f465c",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed": "#6ffbbe",
+              "on-surface-variant": "#45464d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#faf8ff] dark:bg-slate-900 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between px-6 h-16 w-full font-['Inter'] antialiased tracking-tight">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#00174b] dark:text-white">AcademicPro Proctor</span>
+<div class="hidden md:flex gap-6">
+<a class="text-[#0053db] dark:text-blue-400 border-b-2 border-[#0053db] font-semibold" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2" href="#">Exams</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2" href="#">Reports</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors px-2" href="#">Institutes</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-500 font-medium hover:bg-slate-100 px-3 py-1 rounded transition-colors">Support</button>
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-slate-100 p-2 rounded-full cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:bg-slate-100 p-2 rounded-full cursor-pointer">settings</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Close-up professional portrait of a university professor in a modern office setting, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfJpisEdkP6rFfVrW4ypR05gfKtBuUvf1egq-3jM3wAPvUKB0ebqYH4taYYLa4ZEs6PCveesR9C7mHoOxfAblO4jOHw1QhCLajCrnZilAXZE7s_40QCYlYxRXK8sUA_hsk9IqKd5w-MhZwijPWTyo6rKcXCC8MnAUP8uPJ4AbzLgANW46KaS3HgiUxhEG8qY_X-rH-Mvu-Ko7gTPGrX0ypA9XZfRAakUAuAR34fwCH7HDnTyColhyPNmAq9_Ankk2KVyMj8DOtzg"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f2f3ff] dark:bg-slate-950 flex flex-col py-4 gap-2 z-40 pt-20">
+<div class="px-6 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h2 class="text-lg font-black text-[#00174b] leading-tight">Exam Control</h2>
+<p class="text-[10px] uppercase tracking-widest text-on-secondary-container">SuperAdmin Portal</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-[#dae2fd] dark:bg-blue-900/30 text-[#00174b] dark:text-blue-100 rounded-lg mx-2 flex items-center gap-3 px-4 py-3 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium Inter">Dashboard</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00174b] hover:bg-[#dae2fd]/50 px-4 py-3 mx-2 flex items-center gap-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="text-sm font-medium Inter">Question Bank</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00174b] hover:bg-[#dae2fd]/50 px-4 py-3 mx-2 flex items-center gap-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-sm font-medium Inter">Exam Management</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00174b] hover:bg-[#dae2fd]/50 px-4 py-3 mx-2 flex items-center gap-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium Inter">Student Analytics</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00174b] hover:bg-[#dae2fd]/50 px-4 py-3 mx-2 flex items-center gap-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="text-sm font-medium Inter">Proctoring Logs</span>
+</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-[#00174b] hover:bg-[#dae2fd]/50 px-4 py-3 mx-2 flex items-center gap-3 rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium Inter">System Settings</span>
+</a>
+</nav>
+<div class="px-2 space-y-1 mt-auto pt-4 border-t border-slate-200">
+<a class="text-slate-600 px-4 py-3 flex items-center gap-3 hover:bg-slate-100 rounded-lg" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="text-sm font-medium Inter">Help</span>
+</a>
+<a class="text-red-600 px-4 py-3 flex items-center gap-3 hover:bg-red-50 rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm font-medium Inter">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 pt-16 min-h-screen">
+<div class="p-8 space-y-8">
+<!-- Header Section -->
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-3xl font-extrabold tracking-tight text-primary-container">Institutional Oversight</h1>
+<p class="text-on-secondary-container mt-1">Real-time examination metrics for <span class="font-bold text-[#00174b]">St. Jude's Academy</span></p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high text-primary-container px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Export Data
+                    </button>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-lg">add</span>
+                        New Session
+                    </button>
+</div>
+</div>
+<!-- Bento Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Stat Card 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden flex flex-col justify-between">
+<div class="z-10">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-secondary-container mb-1">Total Exams</p>
+<h3 class="text-4xl font-black text-primary-container">1,284</h3>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[12px] font-bold text-on-tertiary-container z-10">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        +12% from last term
+                    </div>
+<div class="absolute -right-4 -bottom-4 opacity-5">
+<span class="material-symbols-outlined text-8xl">assignment</span>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden flex flex-col justify-between">
+<div class="z-10">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-secondary-container mb-1">Students Enrolled</p>
+<h3 class="text-4xl font-black text-primary-container">8,492</h3>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[12px] font-bold text-on-tertiary-container z-10">
+<span class="material-symbols-outlined text-sm">group</span>
+                        Active in 24 courses
+                    </div>
+<div class="absolute -right-4 -bottom-4 opacity-5">
+<span class="material-symbols-outlined text-8xl">school</span>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden flex flex-col justify-between border-b-4 border-on-tertiary-container">
+<div class="z-10">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-secondary-container mb-1">Avg Pass Rate</p>
+<h3 class="text-4xl font-black text-on-tertiary-container">92.4%</h3>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[12px] font-bold text-on-tertiary-container z-10">
+<span class="material-symbols-outlined text-sm">verified</span>
+                        High Performance Tier
+                    </div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-8xl text-on-tertiary-container">check_circle</span>
+</div>
+</div>
+<!-- Stat Card 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden flex flex-col justify-between">
+<div class="z-10">
+<p class="text-[11px] font-bold uppercase tracking-widest text-on-secondary-container mb-1">Questions Bank</p>
+<h3 class="text-4xl font-black text-primary-container">42,019</h3>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[12px] font-bold text-on-secondary-container z-10">
+<span class="material-symbols-outlined text-sm">database</span>
+                        4,200 added this month
+                    </div>
+<div class="absolute -right-4 -bottom-4 opacity-5">
+<span class="material-symbols-outlined text-8xl">inventory_2</span>
+</div>
+</div>
+</div>
+<!-- Dashboard Center Content -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Performance Chart (Simulated) -->
+<div class="lg:col-span-2 bg-surface-container-low rounded-2xl p-8">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h2 class="text-xl font-bold text-primary-container">Exam Performance Trends</h2>
+<p class="text-sm text-on-secondary-container">Pass/Fail metrics over the last 6 months</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-on-tertiary-container"></span>
+<span class="text-xs font-bold text-on-secondary-container">Pass</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="text-xs font-bold text-on-secondary-container">Fail</span>
+</div>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-4 px-4">
+<!-- Bar Charts Representing Trends -->
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 15%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 70%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">Jan</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 10%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 75%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">Feb</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 12%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 80%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">Mar</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 8%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 88%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">Apr</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 18%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 65%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">May</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full flex flex-col-reverse gap-0.5 h-full">
+<div class="w-full bg-error/20 rounded-t-sm" style="height: 5%;"></div>
+<div class="w-full bg-on-tertiary-container rounded-t-sm" style="height: 92%;"></div>
+</div>
+<span class="text-[10px] font-bold text-on-secondary-container uppercase">Jun</span>
+</div>
+</div>
+</div>
+<!-- Quick Actions Panel -->
+<div class="bg-[#00174b] text-on-primary rounded-2xl p-8 flex flex-col justify-between">
+<div>
+<h2 class="text-xl font-bold mb-2">Quick Actions</h2>
+<p class="text-blue-300 text-sm mb-8">Execute administrative tasks instantly</p>
+<div class="space-y-3">
+<button class="w-full flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-300">add_circle</span>
+<span class="font-semibold">Create Question</span>
+</div>
+<span class="material-symbols-outlined text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-300">assignment_add</span>
+<span class="font-semibold">New Exam</span>
+</div>
+<span class="material-symbols-outlined text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-4 bg-white/10 rounded-xl hover:bg-white/20 transition-all group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-300">person_add</span>
+<span class="font-semibold">Enroll Student</span>
+</div>
+<span class="material-symbols-outlined text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-white/10">
+<div class="flex items-center gap-4">
+<div class="bg-blue-400/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-blue-400">shield_lock</span>
+</div>
+<div>
+<p class="text-[10px] uppercase font-black text-blue-400 tracking-wider">Security Status</p>
+<p class="text-sm font-bold">Proctoring AI Active</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Upcoming Exams Table Section -->
+<section class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm">
+<div class="p-6 border-b border-surface-container-low flex justify-between items-center">
+<div>
+<h2 class="text-xl font-bold text-primary-container">Upcoming Scheduled Exams</h2>
+<p class="text-sm text-on-secondary-container">Live monitor and session management</p>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-low rounded-lg text-sm font-semibold text-on-secondary-container">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter View
+                    </div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-dim/30 text-on-surface-variant">
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider">Exam Title</th>
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider">Subject</th>
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider">Schedule</th>
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider">Participants</th>
+<th class="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-primary-container">Mid-Term Differential Equations</div>
+<div class="text-[10px] text-on-secondary-container">ID: MATH-302-B</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium">Mathematics</td>
+<td class="px-6 py-5">
+<div class="text-sm font-bold">Oct 12, 2023</div>
+<div class="text-xs text-on-secondary-container">09:00 AM - 11:30 AM</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 bg-surface-container-high text-on-primary-container text-[10px] font-black uppercase rounded">Ready</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold">JS</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-300 flex items-center justify-center text-[10px] font-bold">ML</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">+142</div>
+</div>
+</td>
+<td class="px-6 py-5 text-right space-x-2">
+<button class="px-3 py-1 text-xs font-bold text-primary-container border border-outline-variant rounded-md hover:bg-surface-container-high">Edit</button>
+<button class="px-3 py-1 text-xs font-bold text-on-primary bg-primary-container rounded-md">Results</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-primary-container">Advanced Neural Networks Finals</div>
+<div class="text-[10px] text-on-secondary-container">ID: CS-504-AI</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium">Computer Science</td>
+<td class="px-6 py-5">
+<div class="text-sm font-bold">Oct 14, 2023</div>
+<div class="text-xs text-on-secondary-container">02:00 PM - 05:00 PM</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-black uppercase rounded">Drafting</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold">PK</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">+88</div>
+</div>
+</td>
+<td class="px-6 py-5 text-right space-x-2">
+<button class="px-3 py-1 text-xs font-bold text-primary-container border border-outline-variant rounded-md hover:bg-surface-container-high">Edit</button>
+<button class="px-3 py-1 text-xs font-bold text-on-primary bg-primary-container rounded-md">Results</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-highest transition-colors group">
+<td class="px-6 py-5">
+<div class="font-bold text-primary-container">Introduction to Bio-Ethics</div>
+<div class="text-[10px] text-on-secondary-container">ID: PHIL-101-ETH</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium">Philosophy</td>
+<td class="px-6 py-5">
+<div class="text-sm font-bold">Oct 15, 2023</div>
+<div class="text-xs text-on-secondary-container">11:00 AM - 01:00 PM</div>
+</td>
+<td class="px-6 py-5">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-black uppercase rounded flex items-center w-fit gap-1">
+<span class="material-symbols-outlined text-[10px]">priority_high</span>
+                                        Alert
+                                    </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-white bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">+312</div>
+</div>
+</td>
+<td class="px-6 py-5 text-right space-x-2">
+<button class="px-3 py-1 text-xs font-bold text-primary-container border border-outline-variant rounded-md hover:bg-surface-container-high">Edit</button>
+<button class="px-3 py-1 text-xs font-bold text-on-primary bg-primary-container rounded-md">Results</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 bg-surface-container-low/30 text-center">
+<button class="text-sm font-bold text-on-primary-container hover:underline">View All Scheduled Exams</button>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Action Button for Emergency Oversight (Contextual) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-error text-on-error rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform group">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+<div class="absolute bottom-full right-0 mb-4 px-3 py-2 bg-inverse-surface text-inverse-on-surface text-[10px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            Emergency Monitor
+        </div>
+</button>
+</body></html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AcademicPro Proctor - Exam Session Analytics</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-container": "#002113",
+              "on-secondary-container": "#5c647a",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e2e7ff",
+              "surface-container-low": "#f2f3ff",
+              "on-surface-variant": "#45464d",
+              "outline": "#76777d",
+              "on-primary-fixed": "#00174b",
+              "surface-tint": "#0053db",
+              "error": "#ba1a1a",
+              "background": "#faf8ff",
+              "primary-fixed-dim": "#b4c5ff",
+              "on-surface": "#131b2e",
+              "on-secondary": "#ffffff",
+              "inverse-on-surface": "#eef0ff",
+              "primary": "#000000",
+              "on-background": "#131b2e",
+              "surface-dim": "#d2d9f4",
+              "inverse-surface": "#283044",
+              "surface-bright": "#faf8ff",
+              "on-error": "#ffffff",
+              "surface": "#faf8ff",
+              "on-primary-container": "#497cff",
+              "on-tertiary-container": "#009668",
+              "surface-variant": "#dae2fd",
+              "on-secondary-fixed": "#131b2e",
+              "inverse-primary": "#b4c5ff",
+              "tertiary": "#000000",
+              "on-primary-fixed-variant": "#003ea8",
+              "surface-container-highest": "#dae2fd",
+              "primary-fixed": "#dbe1ff",
+              "on-tertiary-fixed": "#002113",
+              "primary-container": "#00174b",
+              "secondary-container": "#dae2fd",
+              "secondary": "#565e74",
+              "secondary-fixed-dim": "#bec6e0",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "outline-variant": "#c6c6cd",
+              "tertiary-fixed-dim": "#4edea3",
+              "on-tertiary-fixed-variant": "#005236",
+              "secondary-fixed": "#dae2fd",
+              "on-secondary-fixed-variant": "#3f465c",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed": "#6ffbbe",
+              "surface-container": "#eaedff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-timer {
+            background: rgba(250, 248, 255, 0.7);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f2f3ff] flex flex-col py-4 gap-2 z-40">
+<div class="px-6 mb-8">
+<h2 class="text-lg font-black text-[#00174b]">Exam Control</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">SuperAdmin Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="database">database</span>
+                Question Bank
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 bg-[#dae2fd] text-[#00174b] rounded-lg mx-2 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+                Exam Management
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+                Student Analytics
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+                Proctoring Logs
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                System Settings
+            </a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 py-3 px-4 text-slate-600 hover:bg-[#dae2fd]/50 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+                Help
+            </a>
+<a class="flex items-center gap-3 py-3 px-4 text-error hover:bg-error-container/20 transition-all duration-200 ease-in-out text-sm font-medium Inter" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="pl-64">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 left-64 h-16 bg-[#faf8ff] flex items-center justify-between px-8 z-30 border-b border-slate-200/50">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold tracking-tighter text-[#00174b]">AcademicPro Proctor</span>
+<span class="h-4 w-[1px] bg-outline-variant"></span>
+<nav class="flex items-center gap-6">
+<a class="text-slate-500 hover:bg-slate-100 transition-colors font-medium text-sm" href="#">Dashboard</a>
+<a class="text-[#0053db] border-b-2 border-[#0053db] font-semibold text-sm" href="#">Exams</a>
+<a class="text-slate-500 hover:bg-slate-100 transition-colors font-medium text-sm" href="#">Reports</a>
+<a class="text-slate-500 hover:bg-slate-100 transition-colors font-medium text-sm" href="#">Institutes</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="flex items-center gap-2 pl-4">
+<img alt="User profile avatar" class="w-8 h-8 rounded-full bg-surface-container-high" data-alt="professional portrait of a university administrator in a clean office setting, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBIKH2OgovVKwqq1Bpa1Uv5DaIy5EMcHdYdM5Z4iV1tg8PuFxLN_9KuukBuf5yjp8nsThKDmdq-Yppco4lEoW0rlq3KWQW4fSowONwjEttNcTubZZu8qS9P0j7VUDQnOMCAfLSm8YmezRb69iD8MCFgUTRZ91Ru6_7weRqEexxycLuYZacIpxdQ3bw9De8f8XLeUrtImVMtPh3FAURIk0T1G74LtvApwhMhwvvlLJ0ejCsFG2pb-F_Ua5GhNtwgelOfMo1L5y56w"/>
+<span class="text-sm font-semibold text-on-surface">Dr. Aris Thorne</span>
+</div>
+</div>
+</header>
+<div class="mt-16 p-8 space-y-8">
+<!-- Header Section with Actions -->
+<section class="flex justify-between items-end">
+<div>
+<nav class="flex items-center gap-2 text-xs font-bold text-on-secondary-container mb-2 uppercase tracking-widest">
+<span>Exams</span>
+<span class="material-symbols-outlined text-[10px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-on-primary-container">Quantum Mechanics Final Attempt Logs</span>
+</nav>
+<h1 class="text-3xl font-extrabold text-on-surface tracking-tight">Student Attempt Analytics</h1>
+<p class="text-on-surface-variant mt-1">Exam ID: QM-2024-001 | 148 Registered Students</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest text-on-surface-variant font-semibold rounded shadow-sm hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="upload_file">upload_file</span>
+                        Export to Excel/PDF
+                    </button>
+<button class="flex items-center gap-2 px-6 py-2 bg-primary-container text-on-primary font-bold rounded shadow-xl shadow-primary-container/20 hover:opacity-90 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+                        Re-evaluate Exam
+                    </button>
+</div>
+</section>
+<!-- Stats Bar - Organic Brutalism Layering -->
+<section class="grid grid-cols-4 gap-6">
+<div class="bg-surface-container-lowest p-6 rounded shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Completion Rate</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-black text-[#00174b]">94.2%</span>
+<span class="text-on-tertiary-container text-xs font-bold mb-1 flex items-center"><span class="material-symbols-outlined text-xs" data-icon="trending_up">trending_up</span> +2%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Avg. Score</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-black text-[#00174b]">78.4</span>
+<span class="text-slate-500 text-xs font-bold mb-1">/ 100</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Active Violations</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-black text-error">14</span>
+<span class="bg-error-container text-on-error-container text-[10px] px-2 py-0.5 rounded font-black mb-1">CRITICAL</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Proctor Trust</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-black text-on-tertiary-container">High</span>
+<span class="material-symbols-outlined text-on-tertiary-container mb-1" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</section>
+<!-- Filter Bar -->
+<section class="bg-surface-container-low p-4 rounded-xl flex items-center justify-between gap-4">
+<div class="flex items-center flex-1 gap-4">
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-lowest border-none focus:ring-2 focus:ring-on-primary-container rounded-lg text-sm" placeholder="Search by student name or ID..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest text-on-surface-variant text-sm font-semibold rounded-lg hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="warning">warning</span>
+                            Violations &gt; 0
+                        </button>
+<select class="bg-surface-container-lowest border-none text-sm font-semibold text-on-surface-variant rounded-lg focus:ring-2 focus:ring-on-primary-container">
+<option>All Statuses</option>
+<option>Submitted</option>
+<option>In-Progress</option>
+<option>Flagged</option>
+</select>
+</div>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 text-on-primary-container font-bold text-sm">
+<span class="material-symbols-outlined text-lg" data-icon="filter_list">filter_list</span>
+                    More Filters
+                </button>
+</section>
+<!-- Attempts Table -->
+<section class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-dim/30">
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Student Name</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Status</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Score (%)</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Violations</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Time Spent</th>
+<th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-[#00174b] font-bold text-xs">JA</div>
+<div>
+<p class="font-bold text-on-surface">Julian Alvarez</p>
+<p class="text-[10px] text-slate-500 font-medium">ID: STU-88921</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] px-2 py-1 rounded-full font-black uppercase">Submitted</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="font-black text-on-surface">92.0%</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-on-tertiary-container" style="width: 92%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-bold">0</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-medium">01h 42m</span>
+</td>
+<td class="px-6 py-5">
+<a class="text-on-primary-container font-black text-xs hover:underline decoration-2 underline-offset-4" href="#">View Detail</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-[#00174b] font-bold text-xs">SM</div>
+<div>
+<p class="font-bold text-on-surface">Sarah Mitchell</p>
+<p class="text-[10px] text-slate-500 font-medium">ID: STU-88742</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="bg-on-primary-container/10 text-on-primary-container text-[10px] px-2 py-1 rounded-full font-black uppercase">In-Progress</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-slate-400 font-bold italic">Calculating...</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-error font-black flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="error" style="font-variation-settings: 'FILL' 1;">error</span>
+                                    3
+                                </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-medium">00h 58m</span>
+</td>
+<td class="px-6 py-5">
+<a class="text-on-primary-container font-black text-xs hover:underline decoration-2 underline-offset-4" href="#">Live Monitor</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-[#00174b] font-bold text-xs">EK</div>
+<div>
+<p class="font-bold text-on-surface">Erik Karlsson</p>
+<p class="text-[10px] text-slate-500 font-medium">ID: STU-89102</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="bg-on-tertiary-container/10 text-on-tertiary-container text-[10px] px-2 py-1 rounded-full font-black uppercase">Submitted</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="font-black text-on-surface">64.5%</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-on-primary-container/50" style="width: 64%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-bold">1</span>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-medium">01h 15m</span>
+</td>
+<td class="px-6 py-5">
+<a class="text-on-primary-container font-black text-xs hover:underline decoration-2 underline-offset-4" href="#">View Detail</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-[#00174b] font-bold text-xs">LC</div>
+<div>
+<p class="font-bold text-on-surface">Li Chen</p>
+<p class="text-[10px] text-slate-500 font-medium">ID: STU-88554</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="bg-error-container text-on-error-container text-[10px] px-2 py-1 rounded-full font-black uppercase">Flagged</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="font-black text-error">42.0%</span>
+<div class="w-16 h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 42%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-error font-black flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="report" style="font-variation-settings: 'FILL' 1;">report</span>
+                                    8
+                                </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-on-surface-variant font-medium">00h 42m</span>
+</td>
+<td class="px-6 py-5">
+<a class="text-error font-black text-xs hover:underline decoration-2 underline-offset-4" href="#">Review Incidents</a>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="bg-surface-container-low px-6 py-4 flex items-center justify-between">
+<p class="text-xs font-bold text-on-surface-variant">Showing 1 to 4 of 148 entries</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest text-slate-400 cursor-not-allowed">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary-container text-on-primary font-bold text-xs">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface font-bold text-xs hover:bg-surface-container-high transition-colors">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface font-bold text-xs hover:bg-surface-container-high transition-colors">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface font-bold text-xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Timer Mock/Overlay (Digital Proctor Aesthetic) -->
+<div class="fixed bottom-8 right-8 glass-timer p-4 rounded-xl border border-white/20 shadow-2xl z-50 flex items-center gap-4">
+<div class="relative">
+<svg class="w-12 h-12 -rotate-90">
+<circle class="text-surface-container-high" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-on-primary-container" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="30" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-on-primary-container">75%</div>
+</div>
+<div>
+<p class="text-[10px] font-black uppercase tracking-widest text-slate-400">System Integrity</p>
+<p class="text-sm font-bold text-[#00174b]">Proctoring Stream: Live</p>
+</div>
+</div>
+</body></html>
