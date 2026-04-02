@@ -67,9 +67,9 @@ export default function AdminDashboard() {
           <div style={{ background: 'var(--surface-container-low)', padding: '0.75rem 1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-container-high)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <span className="label-xs" style={{ color: 'var(--secondary)' }}>Your Institute ID (Share with Students)</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <code style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--on-surface)', userSelect: 'all' }}>{user.instituteId}</code>
+              <code style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--on-surface)', userSelect: 'all' }}>{user.instituteId._id || user.instituteId}</code>
               <button 
-                onClick={() => { navigator.clipboard.writeText(user.instituteId); addToast('Institute ID copied!', 'success'); }}
+                onClick={() => { navigator.clipboard.writeText(user.instituteId._id || user.instituteId); addToast('Institute ID copied!', 'success'); }}
                 className="btn-ghost" style={{ padding: '0.25rem', display: 'flex' }} title="Copy Institute ID"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>content_copy</span>
