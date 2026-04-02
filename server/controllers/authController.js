@@ -24,6 +24,10 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
+    if (role === 'superAdmin') {
+      return res.status(400).json({ message: 'Super admin registration is not allowed' });
+    }
+
     let userInstituteId = instituteId;
 
     /* If registering as admin, create a new institute */

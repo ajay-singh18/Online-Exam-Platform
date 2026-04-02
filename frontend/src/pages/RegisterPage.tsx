@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api/authApi';
 
-type RoleTab = 'student' | 'admin' | 'superAdmin';
+type RoleTab = 'student' | 'admin';
 
 interface RoleConfig {
   label: string;
@@ -25,12 +25,6 @@ const ROLE_CONFIG: Record<RoleTab, RoleConfig> = {
     description: 'Register your institution and manage examinations',
     color: 'var(--primary-container)',
   },
-  superAdmin: {
-    label: 'Super Admin',
-    icon: 'shield_person',
-    description: 'Platform-level access for system management',
-    color: 'var(--on-tertiary-container)',
-  },
 };
 
 export default function RegisterPage() {
@@ -45,12 +39,12 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [instituteName, setInstituteName] = useState('');
   const [instituteId, setInstituteId] = useState('');
-  const [superAdminKey, setSuperAdminKey] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalContent, setModalContent] = useState<'terms' | 'privacy' | null>(null);
 
   const currentConfig = ROLE_CONFIG[activeRole];
 
@@ -94,9 +88,6 @@ export default function RegisterPage() {
       }
       if (activeRole === 'student') {
         payload.instituteId = instituteId;
-      }
-      if (activeRole === 'superAdmin') {
-        payload.superAdminKey = superAdminKey;
       }
 
       await registerUser(payload);
@@ -215,8 +206,8 @@ export default function RegisterPage() {
               <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>Select your role and complete registration</p>
             </div>
 
-            {/* Role Selector — 3 panel cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '2rem' }}>
+            {/* Role Selector — 2 panel cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '2rem' }}>
               {(Object.keys(ROLE_CONFIG) as RoleTab[]).map(role => {
                 const cfg = ROLE_CONFIG[role];
                 const isActive = activeRole === role;
@@ -285,9 +276,6 @@ export default function RegisterPage() {
                 renderInput('instituteId', 'Institute ID', 'tag', 'text', instituteId, setInstituteId, 'Provided by your institution admin')
               )}
 
-              {activeRole === 'superAdmin' && (
-                renderInput('superAdminKey', 'Platform Access Key', 'vpn_key', 'password', superAdminKey, setSuperAdminKey, 'Enter your platform authorization key')
-              )}
 
               {/* Password */}
               {renderInput('reg-password', 'Create Password', 'lock', showPassword ? 'text' : 'password', password, setPassword, '••••••••••••',
@@ -329,9 +317,9 @@ export default function RegisterPage() {
                 />
                 <label htmlFor="terms" style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--secondary)', lineHeight: 1.5 }}>
                   I agree to the{' '}
-                  <a href="#" style={{ color: 'var(--on-primary-container)', fontWeight: 700, textDecoration: 'none' }}>Terms of Service</a>
+                  <span onClick={() => setModalContent('terms')} style={{ color: 'var(--on-primary-container)', fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>Terms of Service</span>
                   {' '}and{' '}
-                  <a href="#" style={{ color: 'var(--on-primary-container)', fontWeight: 700, textDecoration: 'none' }}>Privacy Policy</a>
+                  <span onClick={() => setModalContent('privacy')} style={{ color: 'var(--on-primary-container)', fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>Privacy Policy</span>
                 </label>
               </div>
 
@@ -394,6 +382,47 @@ export default function RegisterPage() {
           </div>
         </div>
       </footer>
+
+      {/* Terms & Privacy Modal */}
+      {modalContent && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: 'var(--surface)', padding: '2rem', borderRadius: 'var(--radius-lg)', maxWidth: '35rem', width: '90%', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+          }}>
+            <h2 style={{ marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 700, color: 'var(--on-surface)' }}>
+              {modalContent === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
+            </h2>
+            <div style={{ color: 'var(--on-surface-variant)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              {modalContent === 'terms' ? (
+                <>
+                  <p>Welcome to AcademicPro. By accessing our platform, you agree to these terms.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>1. Usage</h3>
+                  <p>You agree to use this platform strictly for educational assessment purposes. Any unauthorized access, cheating, or reverse engineering of the proctoring system will result in immediate termination.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>2. Responsibilities</h3>
+                  <p>Institutions are responsible for accurate enrollment and oversight. Students are responsible for maintaining a stable internet connection and acceptable testing environment per proctoring guidelines.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>3. Liability</h3>
+                  <p>AcademicPro provides the tools "as is" and is not liable for indirect damages, temporary outages, or assessment outcomes.</p>
+                </>
+              ) : (
+                <>
+                  <p>Your privacy is critically important to us at AcademicPro.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>1. Data Collection</h3>
+                  <p>We collect essential profile data and continuous academic monitoring data during exams (including visibility changes and IP addresses) to ensure assessment integrity.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>2. Data Usage</h3>
+                  <p>Data is strictly utilized to facilitate examinations and report analytics to your governing institution. We do not sell personal data to third parties.</p>
+                  <h3 style={{ marginTop: '1.25rem', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--on-surface)' }}>3. Security</h3>
+                  <p>We implement AES-256 encryption at rest and in transit. Access to sensitive records is restricted using strict role-based access controllers.</p>
+                </>
+              )}
+            </div>
+            <button className="btn-primary" onClick={() => setModalContent(null)} style={{ width: '100%', justifyContent: 'center' }}>
+              Accept & Close
+            </button>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @media (min-width: 768px) {

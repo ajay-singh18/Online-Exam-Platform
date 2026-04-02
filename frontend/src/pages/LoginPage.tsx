@@ -91,14 +91,14 @@ export default function LoginPage() {
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '3rem 4rem',
+          alignItems: 'center',
+          padding: '3rem 0',
           background: 'var(--surface)',
           overflowY: 'auto',
         }}>
-          <div style={{ maxWidth: '28rem', width: '100%', margin: '0 auto' }}>
+          <div style={{ maxWidth: '28rem', width: '100%', margin: 'auto' }}>
             <div style={{ marginBottom: '2.5rem' }}>
-              <h3 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--on-surface)', letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>Welcome Back</h3>
+              <h3 style={{ fontSize: '1.875rem', fontWeight: 700, color: 'var(--on-surface)', letterSpacing: '-0.025em', marginBottom: '0.5rem', lineHeight: 1.3, paddingTop: '0.2rem' }}>Welcome Back</h3>
               <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>Log in to your secure proctoring portal</p>
             </div>
 
@@ -188,7 +188,7 @@ export default function LoginPage() {
       <style>{`
         @media (min-width: 768px) {
           .login-hero { display: flex !important; }
-          section:last-of-type { width: 40% !important; padding: 3rem 6rem !important; }
+          section:last-of-type { width: 40% !important; padding: 3rem 0 !important; }
         }
       `}</style>
     </div>
