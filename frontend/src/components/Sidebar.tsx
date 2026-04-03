@@ -48,10 +48,7 @@ export default function Sidebar({ links, portalName, portalSubtitle }: SidebarPr
       </nav>
 
       <div style={{ marginTop: 'auto', padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <a href="#" className="sidebar-link">
-          <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>help_outline</span>
-          Help
-        </a>
+
         <button
           onClick={handleLogout}
           className="sidebar-link"

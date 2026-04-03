@@ -1,6 +1,8 @@
 const Attempt = require('../models/Attempt');
 const Question = require('../models/Question');
 const Exam = require('../models/Exam');
+const User = require('../models/User');
+const Institute = require('../models/Institute');
 
 /**
  * GET /api/analytics/exam/:examId/summary
@@ -91,7 +93,7 @@ const getExamSummary = async (req, res, next) => {
         label: `Q${idx + 1}`,
         topic: q.topic,
         difficulty: q.difficulty,
-        text: q.text.substring(0, 80),
+        text: (q.text || '').replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').substring(0, 80),
         accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
         attempted: total,
       };
@@ -122,6 +124,41 @@ const getExamSummary = async (req, res, next) => {
 
     const highestScore = attempts.length > 0 ? Math.max(...attempts.map(a => a.percentage || 0)) : 0;
 
+    /* Proctoring Analytics */
+    let flaggedAttemptsCount = 0;
+    const violationSummaryData = {};
+
+    attempts.forEach(attempt => {
+      if (attempt.violations && attempt.violations.length > 0) {
+        flaggedAttemptsCount++;
+        attempt.violations.forEach(v => {
+          if (v.type) {
+            violationSummaryData[v.type] = (violationSummaryData[v.type] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    const violationSummary = Object.keys(violationSummaryData).map(key => ({
+      type: key,
+      count: violationSummaryData[key],
+    }));
+
+    /* Topic Performance */
+    const topicPerformanceData = {};
+    questionAccuracy.forEach(qa => {
+      if (!topicPerformanceData[qa.topic]) {
+        topicPerformanceData[qa.topic] = { totalAccuracy: 0, count: 0 };
+      }
+      topicPerformanceData[qa.topic].totalAccuracy += qa.accuracy;
+      topicPerformanceData[qa.topic].count++;
+    });
+
+    const topicPerformance = Object.keys(topicPerformanceData).map(topic => ({
+      topic: topic || 'Uncategorized',
+      accuracy: Math.round(topicPerformanceData[topic].totalAccuracy / topicPerformanceData[topic].count),
+    }));
+
     res.json({
       success: true,
       summary: {
@@ -133,6 +170,9 @@ const getExamSummary = async (req, res, next) => {
         scoreDistribution: scoreDistributionFormatted,
         questionAccuracy,
         timePerQuestion,
+        flaggedAttemptsCount,
+        violationSummary,
+        topicPerformance,
       },
     });
   } catch (error) {
@@ -140,4 +180,56 @@ const getExamSummary = async (req, res, next) => {
   }
 };
 
-module.exports = { getExamSummary };
+/**
+ * GET /api/analytics/platform
+ * SuperAdmin: Global platform statistics.
+ */
+const getPlatformSummary = async (req, res, next) => {
+  try {
+    const totalInstitutes = await Institute.countDocuments();
+    
+    // Using aggregation to group by plan
+    const institutesByPlan = await Institute.aggregate([
+      { $group: { _id: "$plan", count: { $sum: 1 } } }
+    ]);
+    // format it
+    const planDistribution = institutesByPlan.map(ip => ({
+      plan: ip._id || 'Free',
+      count: ip.count
+    }));
+
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalAdmins = await User.countDocuments({ role: 'admin' });
+
+    const totalExams = await Exam.countDocuments();
+    const totalAttempts = await Attempt.countDocuments({ submittedAt: { $ne: null } });
+    
+    // Quick attempt flagging calculation for global metric
+    const attemptsWithViolations = await Attempt.countDocuments({ 
+      submittedAt: { $ne: null },
+      'violations.0': { $exists: true }
+    });
+
+    const flaggedRate = totalAttempts > 0 
+      ? Math.round((attemptsWithViolations / totalAttempts) * 100)
+      : 0;
+
+    res.json({
+      success: true,
+      platform: {
+        totalInstitutes,
+        totalStudents,
+        totalAdmins,
+        totalExams,
+        totalAttempts,
+        flaggedRate,
+        planDistribution
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getExamSummary, getPlatformSummary };

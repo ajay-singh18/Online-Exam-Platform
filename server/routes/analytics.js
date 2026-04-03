@@ -1,12 +1,12 @@
 const express = require('express');
-const { getExamSummary } = require('../controllers/analyticsController');
+const { getExamSummary, getPlatformSummary } = require('../controllers/analyticsController');
 const { verifyToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.use(verifyToken);
-router.use(requireRole('admin', 'superAdmin'));
 
-router.get('/exam/:examId/summary', getExamSummary);
+router.get('/exam/:examId/summary', requireRole('admin', 'superAdmin'), getExamSummary);
+router.get('/platform', requireRole('superAdmin'), getPlatformSummary);
 
 module.exports = router;

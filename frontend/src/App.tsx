@@ -26,6 +26,11 @@ import InstituteManagement from './pages/InstituteManagement';
 import StudentLayout from './layouts/StudentLayout';
 import AdminLayout from './layouts/AdminLayout';
 import SuperAdminLayout from './layouts/SuperAdminLayout';
+import Settings from './pages/Settings';
+
+import UserManagement from './pages/UserManagement';
+import PlatformAnalytics from './pages/PlatformAnalytics';
+import Help from './pages/Help';
 
 function App() {
   return (
@@ -44,6 +49,8 @@ function App() {
             <Route path="exams" element={<StudentExams />} />
             <Route path="results" element={<StudentResultsList />} />
             <Route path="results/:attemptId" element={<ExamResults />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Help />} />
           </Route>
         </Route>
 
@@ -69,7 +76,8 @@ function App() {
             <Route path="analytics/:examId" element={<ExamAnalytics />} />
             <Route path="batches" element={<BatchManagement />} />
             <Route path="results" element={<AdminResults />} />
-            <Route path="settings" element={<AdminDashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Help />} />
           </Route>
         </Route>
 
@@ -78,9 +86,10 @@ function App() {
           <Route element={<SuperAdminLayout />}>
             <Route index element={<SuperAdminDashboard />} />
             <Route path="institutes" element={<InstituteManagement />} />
-            <Route path="users" element={<div style={{padding:'4rem',textAlign:'center',color:'var(--on-secondary-container)',fontWeight:600}}><h2>Coming Soon</h2><p>User Management is under development.</p></div>} />
-            <Route path="analytics" element={<div style={{padding:'4rem',textAlign:'center',color:'var(--on-secondary-container)',fontWeight:600}}><h2>Coming Soon</h2><p>Platform Analytics is under development.</p></div>} />
-            <Route path="settings" element={<div style={{padding:'4rem',textAlign:'center',color:'var(--on-secondary-container)',fontWeight:600}}><h2>Coming Soon</h2><p>Platform Settings are under development.</p></div>} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="analytics" element={<PlatformAnalytics />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Help />} />
           </Route>
         </Route>
 
