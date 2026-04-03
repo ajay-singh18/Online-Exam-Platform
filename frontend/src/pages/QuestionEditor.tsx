@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { createQuestion, updateQuestion, getQuestions, getTopics } from '../api/questionApi';
+import { createQuestion, updateQuestion, getQuestions, getTopics, getSubjects } from '../api/questionApi';
 import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -26,6 +26,7 @@ export default function QuestionEditor() {
 
   const [text, setText] = useState('');
   const [type, setType] = useState('mcq');
+  const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
   const [options, setOptions] = useState([
@@ -37,17 +38,19 @@ export default function QuestionEditor() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
   const [previousTopics, setPreviousTopics] = useState<string[]>([]);
+  const [previousSubjects, setPreviousSubjects] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchTopics = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await getTopics();
-        setPreviousTopics(data.topics || []);
+        const [topicRes, subjectRes] = await Promise.all([getTopics(), getSubjects()]);
+        setPreviousTopics(topicRes.data.topics || []);
+        setPreviousSubjects(subjectRes.data.subjects || []);
       } catch (error) {
-        console.warn('Failed to load topics', error);
+        console.warn('Failed to load categorization data', error);
       }
     };
-    fetchTopics();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -60,6 +63,7 @@ export default function QuestionEditor() {
         if (q) {
           setText(q.text || '');
           setType(q.type || 'mcq');
+          setSubject(q.subject || '');
           setTopic(q.topic || '');
           setDifficulty(q.difficulty || 'medium');
           if (q.options?.length) setOptions(q.options.map((o: any) => ({ text: o.text, isCorrect: o.isCorrect })));
@@ -103,7 +107,7 @@ export default function QuestionEditor() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) { addToast('Question text is required', 'warning'); return; }
-    if (!topic.trim()) { addToast('Topic is required', 'warning'); return; }
+    if (!subject.trim()) { addToast('Subject is required', 'warning'); return; }
     if ((type === 'mcq' || type === 'msq' || type === 'truefalse') && !options.some(o => o.isCorrect)) {
       addToast('Select at least one correct answer', 'warning'); return;
     }
@@ -113,6 +117,7 @@ export default function QuestionEditor() {
       const formData = new FormData();
       formData.append('text', text);
       formData.append('type', type);
+      formData.append('subject', subject);
       formData.append('topic', topic);
       formData.append('difficulty', difficulty);
       formData.append('options', JSON.stringify(options));
@@ -152,7 +157,7 @@ export default function QuestionEditor() {
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Type + Difficulty + Topic */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="label-xs" style={{ color: 'var(--secondary)' }}>Question Type</label>
             <select className="ghost-input" value={type} onChange={(e) => setType(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '1rem' }}>
@@ -171,15 +176,32 @@ export default function QuestionEditor() {
             </select>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label className="label-xs" style={{ color: 'var(--secondary)' }}>Subject</label>
+            <input 
+              className="ghost-input" 
+              value={subject} 
+              onChange={(e) => setSubject(e.target.value)} 
+              placeholder="e.g. Science" 
+              style={{ borderRadius: 'var(--radius-sm)' }} 
+              list="previous-subjects"
+              required 
+            />
+            <datalist id="previous-subjects">
+              {previousSubjects.map((s, idx) => (
+                <option key={idx} value={s} />
+              ))}
+            </datalist>
+            <div className="input-underline" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label className="label-xs" style={{ color: 'var(--secondary)' }}>Topic</label>
             <input 
               className="ghost-input" 
               value={topic} 
               onChange={(e) => setTopic(e.target.value)} 
               placeholder="e.g. Data Structures" 
-              style={{ borderRadius: 'var(--radius-sm)' }} 
+              style={{ borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }} 
               list="previous-topics"
-              required 
             />
             <datalist id="previous-topics">
               {previousTopics.map((t, idx) => (

@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getExams } from '../api/examApi';
 import { getExamAttempts } from '../api/attemptApi';
 import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function AdminResults() {
-  const navigate = useNavigate();
+  const { examId } = useParams();
   const addToast = useToastStore((s: any) => s.addToast);
 
   const [exams, setExams] = useState<any[]>([]);
-  const [selectedExamId, setSelectedExamId] = useState('');
+  const [selectedExamId, setSelectedExamId] = useState(examId || '');
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAttempts, setLoadingAttempts] = useState(false);

@@ -10,7 +10,6 @@ export default function InstituteManagement() {
   const [institutes, setInstitutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [editTarget, setEditTarget] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
   // Create form
@@ -49,7 +48,6 @@ export default function InstituteManagement() {
       await updateInstitute(id, { plan });
       setInstitutes(prev => prev.map(i => i._id === id ? { ...i, plan } : i));
       addToast('Plan updated', 'success');
-      setEditTarget(null);
     } catch { addToast('Update failed', 'error'); }
   };
 

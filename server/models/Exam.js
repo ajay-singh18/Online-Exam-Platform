@@ -36,6 +36,10 @@ const examSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    aiProctoringEnabled: {
+      type: Boolean,
+      default: false,
+    },
     passMark: {
       type: Number,
       default: 40,

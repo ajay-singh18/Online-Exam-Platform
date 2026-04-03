@@ -30,7 +30,7 @@ const attemptSchema = new mongoose.Schema(
       {
         type: {
           type: String,
-          enum: ['tabSwitch', 'fullscreenExit', 'copyPaste'],
+          enum: ['tabSwitch', 'fullscreenExit', 'copyPaste', 'noFace', 'multipleFaces', 'lookingAway'],
         },
         timestamp: { type: Date, default: Date.now },
       },

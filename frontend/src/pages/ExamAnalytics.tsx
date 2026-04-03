@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getExamSummary } from '../api/analyticsApi';
 import { getExams } from '../api/examApi';
 import { useToastStore } from '../store/toastStore';
@@ -10,7 +10,7 @@ const CHART_COLORS = ['#0053db', '#00174b', '#4EDEA3', '#F59E0B', '#6366F1', '#E
 
 export default function ExamAnalytics() {
   const { examId: routeExamId } = useParams();
-  const navigate = useNavigate();
+
   const addToast = useToastStore((s: any) => s.addToast);
 
   const [exams, setExams] = useState<any[]>([]);
@@ -49,7 +49,7 @@ export default function ExamAnalytics() {
 
   const scoreDistribution = summary?.scoreDistribution || [];
   const questionAccuracy = summary?.questionAccuracy || [];
-  const timePerQuestion = summary?.avgTimePerQuestion || [];
+  const timePerQuestion = summary?.timePerQuestion || [];
 
   return (
     <div style={{ padding: '2rem', maxWidth: '80rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -96,7 +96,21 @@ export default function ExamAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-container-high)" />
                   <XAxis dataKey="range" stroke="var(--on-secondary-container)" fontSize={12} fontWeight={600} />
                   <YAxis stroke="var(--on-secondary-container)" fontSize={12} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', borderRadius: '12px', border: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }} />
+                  <Tooltip 
+                    cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid var(--outline-variant)', maxWidth: '20rem' }}>
+                            <p style={{ fontWeight: 800, color: 'var(--primary-container)', marginBottom: '0.25rem' }}>{data.range}</p>
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--on-surface)' }}>{payload[0].value} students</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                   <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                     {scoreDistribution.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                   </Bar>
@@ -114,7 +128,23 @@ export default function ExamAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-container-high)" />
                   <XAxis dataKey="label" stroke="var(--on-secondary-container)" fontSize={11} fontWeight={600} />
                   <YAxis stroke="var(--on-secondary-container)" fontSize={12} domain={[0, 100]} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', borderRadius: '12px', border: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }} />
+                  <Tooltip 
+                    cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid var(--outline-variant)', maxWidth: '20rem' }}>
+                            <p style={{ fontWeight: 800, color: 'var(--primary-container)', marginBottom: '0.25rem' }}>{data.label}: {data.topic}</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--on-secondary-container)', marginBottom: '0.5rem', fontStyle: 'italic' }}>"{data.text}..."</p>
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--on-surface)' }}>Accuracy: {data.accuracy}%</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--outline)' }}>Attempts: {data.attempted}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                   <Bar dataKey="accuracy" fill="#4EDEA3" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -130,7 +160,21 @@ export default function ExamAnalytics() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-container-high)" />
                   <XAxis dataKey="label" stroke="var(--on-secondary-container)" fontSize={11} fontWeight={600} />
                   <YAxis stroke="var(--on-secondary-container)" fontSize={12} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', borderRadius: '12px', border: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }} />
+                  <Tooltip 
+                    cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid var(--outline-variant)', maxWidth: '20rem' }}>
+                            <p style={{ fontWeight: 800, color: 'var(--primary-container)', marginBottom: '0.25rem' }}>{data.label}</p>
+                            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--on-surface)' }}>Avg Time: {data.avgTime}s</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
                   <Bar dataKey="avgTime" fill="#6366F1" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

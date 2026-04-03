@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { createQuestion, getTopics } from '../api/questionApi';
+import { createQuestion, getTopics, getSubjects } from '../api/questionApi';
 import { getDocuments, uploadDocument, deleteDocument } from '../api/documentApi';
 import { useToastStore } from '../store/toastStore';
 
@@ -27,20 +27,22 @@ export default function SplitScreenEditor() {
   const [documentsLoading, setDocumentsLoading] = useState(true);
   const [uploadingRef, setUploadingRef] = useState(false);
   const [previousTopics, setPreviousTopics] = useState<string[]>([]);
+  const [previousSubjects, setPreviousSubjects] = useState<string[]>([]);
+
+  const fetchCategorization = async () => {
+    try {
+      const [topicRes, subjectRes] = await Promise.all([getTopics(), getSubjects()]);
+      setPreviousTopics(topicRes.data.topics || []);
+      setPreviousSubjects(subjectRes.data.subjects || []);
+    } catch (error) {
+      console.warn('Failed to load previous categorization data', error);
+    }
+  };
 
   useEffect(() => {
     fetchDocuments();
-    fetchTopics();
+    fetchCategorization();
   }, []);
-
-  const fetchTopics = async () => {
-    try {
-      const { data } = await getTopics();
-      setPreviousTopics(data.topics || []);
-    } catch (error) {
-      console.warn('Failed to load previous topics', error);
-    }
-  };
 
   const fetchDocuments = async () => {
     setDocumentsLoading(true);
@@ -58,6 +60,7 @@ export default function SplitScreenEditor() {
   const [submitting, setSubmitting] = useState(false);
   const [text, setText] = useState('');
   const [type, setType] = useState('mcq');
+  const [subject, setSubject] = useState('');
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
   const [options, setOptions] = useState([
@@ -155,7 +158,7 @@ export default function SplitScreenEditor() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) { addToast('Question text is required', 'warning'); return; }
-    if (!topic.trim()) { addToast('Topic is required', 'warning'); return; }
+    if (!subject.trim()) { addToast('Subject is required', 'warning'); return; }
     if ((type === 'mcq' || type === 'msq' || type === 'truefalse') && !options.some(o => o.isCorrect)) {
       addToast('Select at least one correct answer', 'warning'); return;
     }
@@ -165,6 +168,7 @@ export default function SplitScreenEditor() {
       const formData = new FormData();
       formData.append('text', text);
       formData.append('type', type);
+      formData.append('subject', subject);
       formData.append('topic', topic);
       formData.append('difficulty', difficulty);
       formData.append('options', JSON.stringify(options));
@@ -281,23 +285,42 @@ export default function SplitScreenEditor() {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label className="label-xs" style={{ color: 'var(--secondary)' }}>Topic</label>
-              <input 
-                className="ghost-input" 
-                value={topic} 
-                onChange={(e) => setTopic(e.target.value)} 
-                placeholder="Type or select a topic" 
-                style={{ borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }} 
-                list="previous-topics"
-                required 
-              />
-              <datalist id="previous-topics">
-                {previousTopics.map((t, idx) => (
-                  <option key={idx} value={t} />
-                ))}
-              </datalist>
-              <div className="input-underline" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label className="label-xs" style={{ color: 'var(--secondary)' }}>Subject</label>
+                <input 
+                  className="ghost-input" 
+                  value={subject} 
+                  onChange={(e) => setSubject(e.target.value)} 
+                  placeholder="e.g. Science" 
+                  style={{ borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }} 
+                  list="previous-subjects-split"
+                  required 
+                />
+                <datalist id="previous-subjects-split">
+                  {previousSubjects.map((s, idx) => (
+                    <option key={idx} value={s} />
+                  ))}
+                </datalist>
+                <div className="input-underline" />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label className="label-xs" style={{ color: 'var(--secondary)' }}>Topic</label>
+                <input 
+                  className="ghost-input" 
+                  value={topic} 
+                  onChange={(e) => setTopic(e.target.value)} 
+                  placeholder="e.g. Data Structures" 
+                  style={{ borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }} 
+                  list="previous-topics-split"
+                />
+                <datalist id="previous-topics-split">
+                  {previousTopics.map((t, idx) => (
+                    <option key={idx} value={t} />
+                  ))}
+                </datalist>
+                <div className="input-underline" />
+              </div>
             </div>
           </div>
 

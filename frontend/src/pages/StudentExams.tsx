@@ -48,18 +48,32 @@ export default function StudentExams() {
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('all');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const fetchExamsWithAttempts = async () => {
+    setLoading(true);
+    try {
+      const params: any = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      const [examRes, attemptRes] = await Promise.all([getExams(params), getMyAttempts()]);
+      setExams(examRes.data.exams || examRes.data || []);
+      setAttempts(attemptRes.data.attempts || attemptRes.data || []);
+    } catch { /* interceptor handles */ }
+    finally { setLoading(false); }
+  };
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [examRes, attemptRes] = await Promise.all([getExams(), getMyAttempts()]);
-        setExams(examRes.data.exams || examRes.data || []);
-        setAttempts(attemptRes.data.attempts || attemptRes.data || []);
-      } catch { /* interceptor handles */ }
-      finally { setLoading(false); }
-    };
-    fetchData();
-  }, []);
+    fetchExamsWithAttempts();
+  }, [debouncedSearch]);
 
   if (loading) return <LoadingSpinner message="Loading exams..." />;
 
@@ -121,23 +135,46 @@ export default function StudentExams() {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-container-low)', borderRadius: 'var(--radius-full)', padding: '0.25rem', width: 'fit-content' }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-full)', border: 'none',
-              background: activeTab === tab.key ? 'var(--primary-container)' : 'transparent',
-              color: activeTab === tab.key ? 'white' : 'var(--on-surface)',
-              fontWeight: activeTab === tab.key ? 700 : 500,
-              fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Search & Tabs */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Search Bar */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: '28rem' }}>
+          <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>search</span>
+          <input 
+            className="ghost-input" 
+            value={search} 
+            onChange={(e) => setSearch(e.target.value)} 
+            placeholder="Search exams by title or description..." 
+            style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem', width: '100%' }} 
+          />
+          {search && (
+            <button 
+              onClick={() => setSearch('')}
+              style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: 'var(--outline)', cursor: 'pointer' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>close</span>
+            </button>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-container-low)', borderRadius: 'var(--radius-full)', padding: '0.25rem', width: 'fit-content' }}>
+          {tabs.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-full)', border: 'none',
+                background: activeTab === tab.key ? 'var(--primary-container)' : 'transparent',
+                color: activeTab === tab.key ? 'white' : 'var(--on-surface)',
+                fontWeight: activeTab === tab.key ? 700 : 500,
+                fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Exam Cards */}

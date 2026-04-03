@@ -68,12 +68,14 @@ export default function ExamBuilder() {
   const [randomizeQuestions, setRandomizeQuestions] = useState(draft?.randomizeQuestions || false);
   const [randomizeOptions, setRandomizeOptions] = useState(draft?.randomizeOptions || false);
   const [fullscreenRequired, setFullscreenRequired] = useState(draft?.fullscreenRequired ?? true);
+  const [aiProctoringEnabled, setAiProctoringEnabled] = useState(draft?.aiProctoringEnabled ?? false);
   const [enrollAll, setEnrollAll] = useState(draft?.enrollAll || false);
   const [selectedBatches, setSelectedBatches] = useState<Set<string>>(new Set(draft?.selectedBatches || []));
   const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set(draft?.selectedQuestions || []));
 
-  // Question filter
+  // Question filters
   const [qFilter, setQFilter] = useState('');
+  const [qSubjectFilter, setQSubjectFilter] = useState('');
 
   // Save draft to localStorage on every field change
   useEffect(() => {
@@ -81,11 +83,11 @@ export default function ExamBuilder() {
     const draftData = {
       title, description, durationMins, passMark,
       startAt, endAt, randomizeQuestions, randomizeOptions,
-      fullscreenRequired, enrollAll, selectedBatches: [...selectedBatches],
+      fullscreenRequired, aiProctoringEnabled, enrollAll, selectedBatches: [...selectedBatches],
       selectedQuestions: [...selectedQuestions],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
-  }, [title, description, durationMins, passMark, startAt, endAt, randomizeQuestions, randomizeOptions, fullscreenRequired, enrollAll, selectedBatches, selectedQuestions, loading]);
+  }, [title, description, durationMins, passMark, startAt, endAt, randomizeQuestions, randomizeOptions, fullscreenRequired, aiProctoringEnabled, enrollAll, selectedBatches, selectedQuestions, loading]);
 
   useEffect(() => {
     const init = async () => {
@@ -109,6 +111,7 @@ export default function ExamBuilder() {
             setRandomizeQuestions(exam.randomizeQuestions);
             setRandomizeOptions(exam.randomizeOptions);
             setFullscreenRequired(exam.fullscreenRequired);
+            setAiProctoringEnabled(exam.aiProctoringEnabled || false);
             setEnrollAll(exam.enrollAll || false);
             setSelectedBatches(new Set((exam.allowedBatches || []).map((b: any) => b._id || b)));
             setSelectedQuestions(new Set((exam.questions || []).map((q: any) => q._id || q)));
@@ -136,7 +139,7 @@ export default function ExamBuilder() {
     setSubmitting(true);
     const payload = {
       title, description, durationMins, passMark,
-      startAt: startAt || undefined, endAt: endAt || undefined,
+      startAt: startAt || undefined, endAt: endAt || undefined, aiProctoringEnabled,
       randomizeQuestions, randomizeOptions, fullscreenRequired, enrollAll,
       allowedBatches: [...selectedBatches],
       questions: [...selectedQuestions],
@@ -157,9 +160,13 @@ export default function ExamBuilder() {
     } finally { setSubmitting(false); }
   };
 
-  const filteredQuestions = allQuestions.filter((q: any) =>
-    !qFilter || q.topic?.toLowerCase().includes(qFilter.toLowerCase()) || q.text?.toLowerCase().includes(qFilter.toLowerCase())
-  );
+  const filteredQuestions = allQuestions.filter((q: any) => {
+    const textMatch = !qFilter || q.topic?.toLowerCase().includes(qFilter.toLowerCase()) || q.text?.toLowerCase().includes(qFilter.toLowerCase());
+    const subjectMatch = !qSubjectFilter || q.subject === qSubjectFilter;
+    return textMatch && subjectMatch;
+  });
+
+  const subjects = [...new Set(allQuestions.map(q => q.subject).filter(Boolean))];
 
   if (loading) return <LoadingSpinner message="Loading exam builder..." />;
 
@@ -225,6 +232,7 @@ export default function ExamBuilder() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {[
               { key: 'fullscreenRequired', label: 'Require fullscreen mode (proctoring)', value: fullscreenRequired, setter: setFullscreenRequired },
+              { key: 'aiProctoringEnabled', label: 'Enable AI proctoring (webcam face detection)', value: aiProctoringEnabled, setter: setAiProctoringEnabled },
               { key: 'randomizeQuestions', label: 'Randomize question order per student', value: randomizeQuestions, setter: setRandomizeQuestions },
               { key: 'randomizeOptions', label: 'Randomize option order per student', value: randomizeOptions, setter: setRandomizeOptions },
             ].map(opt => (
@@ -313,12 +321,18 @@ export default function ExamBuilder() {
 
         {/* Question Selection */}
         <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', padding: '2rem', boxShadow: '0 8px 32px rgba(30,58,138,0.05)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h3 style={{ fontWeight: 800, color: 'var(--primary-container)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>quiz</span>
               Select Questions ({selectedQuestions.size} selected)
             </h3>
-            <input className="ghost-input" placeholder="Search by topic or text..." value={qFilter} onChange={(e) => setQFilter(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', width: 'auto', maxWidth: '16rem' }} />
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <select className="ghost-input" value={qSubjectFilter} onChange={(e) => setQSubjectFilter(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', width: 'auto', minWidth: '10rem', paddingLeft: '0.75rem' }}>
+                <option value="">All Subjects</option>
+                {subjects.map((s: any) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <input className="ghost-input" placeholder="Search by topic or text..." value={qFilter} onChange={(e) => setQFilter(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', width: 'auto', maxWidth: '16rem' }} />
+            </div>
           </div>
           {filteredQuestions.length === 0 ? (
             <p style={{ color: 'var(--on-secondary-container)', textAlign: 'center', padding: '2rem' }}>No questions available. Create questions first.</p>
@@ -337,6 +351,7 @@ export default function ExamBuilder() {
                     <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.25rem' }}>
                       <span className="badge" style={{ fontSize: '0.6rem' }}>{q.type}</span>
                       <span className="badge" style={{ fontSize: '0.6rem' }}>{q.difficulty}</span>
+                      <span className="badge" style={{ fontSize: '0.6rem', background: 'var(--secondary-container)' }}>{q.subject}</span>
                       <span className="badge" style={{ fontSize: '0.6rem' }}>{q.topic}</span>
                     </div>
                   </div>

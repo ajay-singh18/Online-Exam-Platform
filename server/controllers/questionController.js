@@ -1,5 +1,7 @@
 const Question = require('../models/Question');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { extractQuestionsFromText } = require('../utils/gemini');
+const pdf = require('pdf-parse');
 
 /**
  * GET /api/questions
@@ -7,12 +9,22 @@ const { uploadToCloudinary } = require('../utils/cloudinary');
  */
 const getQuestions = async (req, res, next) => {
   try {
-    const { topic, difficulty, type, page = 1, limit = 20 } = req.query;
+    const { subject, topic, difficulty, type, search, page = 1, limit = 20 } = req.query;
     const filter = { instituteId: req.user.instituteId };
 
+    if (subject) filter.subject = { $regex: subject, $options: 'i' };
     if (topic) filter.topic = { $regex: topic, $options: 'i' };
     if (difficulty) filter.difficulty = difficulty;
     if (type) filter.type = type;
+
+    if (search) {
+      filter.$or = [
+        { text: { $regex: search, $options: 'i' } },
+        { topic: { $regex: search, $options: 'i' } },
+        { subject: { $regex: search, $options: 'i' } },
+        { 'options.text': { $regex: search, $options: 'i' } },
+      ];
+    }
 
     const total = await Question.countDocuments(filter);
     const questions = await Question.find(filter)
@@ -42,7 +54,7 @@ const getQuestions = async (req, res, next) => {
  */
 const createQuestion = async (req, res, next) => {
   try {
-    const { text, type, options, topic, difficulty } = req.body;
+    const { text, type, options, subject, topic, difficulty } = req.body;
 
     let imageUrl = null;
     if (req.file) {
@@ -57,6 +69,7 @@ const createQuestion = async (req, res, next) => {
       text,
       type,
       options: typeof options === 'string' ? JSON.parse(options) : options,
+      subject: subject || 'General',
       topic,
       difficulty,
       imageUrl,
@@ -75,7 +88,7 @@ const createQuestion = async (req, res, next) => {
  */
 const updateQuestion = async (req, res, next) => {
   try {
-    const { text, type, options, topic, difficulty } = req.body;
+    const { text, type, options, subject, topic, difficulty } = req.body;
     const question = await Question.findOne({
       _id: req.params.id,
       instituteId: req.user.instituteId,
@@ -88,6 +101,7 @@ const updateQuestion = async (req, res, next) => {
     if (text) question.text = text;
     if (type) question.type = type;
     if (options) question.options = typeof options === 'string' ? JSON.parse(options) : options;
+    if (subject) question.subject = subject;
     if (topic) question.topic = topic;
     if (difficulty) question.difficulty = difficulty;
 
@@ -164,4 +178,58 @@ const getTopics = async (req, res, next) => {
   }
 };
 
-module.exports = { getQuestions, createQuestion, updateQuestion, deleteQuestion, bulkImport, getTopics };
+/**
+ * GET /api/questions/subjects
+ * Get a list of unique subjects used in the institute's questions
+ */
+const getSubjects = async (req, res, next) => {
+  try {
+    const subjects = await Question.distinct('subject', { instituteId: req.user.instituteId });
+    res.json({ success: true, subjects: subjects.filter(Boolean) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/questions/import/ai
+ * Extract questions from PDF or JSON using Gemini.
+ */
+const extractFromAI = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    let text = '';
+    const mimetype = req.file.mimetype;
+
+    if (mimetype === 'application/pdf') {
+       const data = await pdf(req.file.buffer);
+       text = data.text;
+    } else {
+       text = req.file.buffer.toString('utf-8');
+    }
+
+    if (!text || text.trim().length < 20) {
+      return res.status(400).json({ message: 'File contains too little text to extract questions.' });
+    }
+
+    const questions = await extractQuestionsFromText(text);
+
+    res.json({
+      success: true,
+      questions,
+      message: `Extracted ${questions.length} questions. Please review them.`
+    });
+
+  } catch (error) {
+    console.error('[AI_IMPORT] Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message || 'AI extraction failed. Make sure the PDF has selectable text.' 
+    });
+  }
+};
+
+module.exports = { getQuestions, createQuestion, updateQuestion, deleteQuestion, bulkImport, getTopics, getSubjects, extractFromAI };

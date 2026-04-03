@@ -8,10 +8,20 @@ const Batch = require('../models/Batch');
  */
 const getExams = async (req, res, next) => {
   try {
+    const { search } = req.query;
+    let query = { instituteId: req.user.instituteId };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
     let exams;
 
     if (req.user.role === 'admin' || req.user.role === 'superAdmin') {
-      exams = await Exam.find({ instituteId: req.user.instituteId })
+      exams = await Exam.find(query)
         .populate('createdBy', 'name')
         .sort({ createdAt: -1 });
     } else {
@@ -22,14 +32,17 @@ const getExams = async (req, res, next) => {
       ).lean();
       const batchIds = studentBatches.map((b) => b._id);
 
-      const rawExams = await Exam.find({
-        instituteId: req.user.instituteId,
+      const studentQuery = {
+        ...query,
         $or: [
+          ...(query.$or || []),
           { allowedStudents: req.user._id },
           { allowedBatches: { $in: batchIds } },
           { enrollAll: true },
         ],
-      })
+      };
+
+      const rawExams = await Exam.find(studentQuery)
         .sort({ startAt: -1 })
         .lean();
       /* Strip question IDs but keep count */

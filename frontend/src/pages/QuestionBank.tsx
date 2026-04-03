@@ -5,6 +5,7 @@ import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmModal from '../components/ConfirmModal';
 import QuestionCard from '../components/QuestionCard';
+import BulkImportModal from '../components/BulkImportModal';
 
 export default function QuestionBank() {
   const navigate = useNavigate();
@@ -13,16 +14,30 @@ export default function QuestionBank() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [showBulkModal, setShowBulkModal] = useState(false);
 
-  // Filters
+  // Search & Filters
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
   const [topicFilter, setTopicFilter] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500); // 500ms delay
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchQuestions = async () => {
     setLoading(true);
     try {
       const params: any = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (subjectFilter) params.subject = subjectFilter;
       if (topicFilter) params.topic = topicFilter;
       if (difficultyFilter) params.difficulty = difficultyFilter;
       if (typeFilter) params.type = typeFilter;
@@ -32,7 +47,7 @@ export default function QuestionBank() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchQuestions(); }, [topicFilter, difficultyFilter, typeFilter]);
+  useEffect(() => { fetchQuestions(); }, [debouncedSearch, subjectFilter, topicFilter, difficultyFilter, typeFilter]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -44,6 +59,7 @@ export default function QuestionBank() {
     finally { setDeleteTarget(null); }
   };
 
+  const subjects = [...new Set(questions.map((q: any) => q.subject).filter(Boolean))];
   const topics = [...new Set(questions.map((q: any) => q.topic).filter(Boolean))];
 
   return (
@@ -55,9 +71,13 @@ export default function QuestionBank() {
           <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>{questions.length} question{questions.length !== 1 ? 's' : ''} total</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-secondary" onClick={() => setShowBulkModal(true)}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>upload_file</span>
+            Bulk Import
+          </button>
           <button className="btn-secondary" onClick={() => navigate('/admin/editor/split')}>
-            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>upload</span>
-            Split Screen Import
+            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>splitscreen</span>
+            Split Screen
           </button>
           <button className="btn-primary" onClick={() => navigate('/admin/editor')}>
             <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>add</span>
@@ -66,8 +86,38 @@ export default function QuestionBank() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Search & Filters */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Search Bar */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: '32rem' }}>
+          <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>search</span>
+          <input 
+            className="ghost-input" 
+            value={search} 
+            onChange={(e) => setSearch(e.target.value)} 
+            placeholder="Search questions by text, topic, subject, or answers..." 
+            style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem', width: '100%' }} 
+          />
+          {search && (
+            <button 
+              onClick={() => setSearch('')}
+              style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: 'var(--outline)', cursor: 'pointer' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>close</span>
+            </button>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <select
+            value={subjectFilter}
+            onChange={(e) => setSubjectFilter(e.target.value)}
+            className="ghost-input"
+            style={{ borderRadius: 'var(--radius-sm)', width: 'auto', minWidth: '12rem', paddingLeft: '1rem' }}
+          >
+            <option value="">All Subjects</option>
+            {subjects.map(s => <option key={s as string} value={s as string}>{s as string}</option>)}
+          </select>
         <select
           value={topicFilter}
           onChange={(e) => setTopicFilter(e.target.value)}
@@ -75,7 +125,7 @@ export default function QuestionBank() {
           style={{ borderRadius: 'var(--radius-sm)', width: 'auto', minWidth: '12rem', paddingLeft: '1rem' }}
         >
           <option value="">All Topics</option>
-          {topics.map(t => <option key={t} value={t}>{t}</option>)}
+          {topics.map(t => <option key={t as string} value={t as string}>{t as string}</option>)}
         </select>
         <select
           value={difficultyFilter}
@@ -101,6 +151,7 @@ export default function QuestionBank() {
           <option value="fillblank">Fill in the Blank</option>
         </select>
       </div>
+    </div>
 
       {/* Question List */}
       {loading ? <LoadingSpinner /> : questions.length === 0 ? (
@@ -121,7 +172,8 @@ export default function QuestionBank() {
                       background: q.difficulty === 'hard' ? 'var(--error-container)' : q.difficulty === 'medium' ? '#FEF3C7' : 'rgba(78,222,163,0.15)',
                       color: q.difficulty === 'hard' ? 'var(--on-error-container)' : q.difficulty === 'medium' ? '#92400E' : 'var(--on-tertiary-container)',
                     }}>{q.difficulty}</span>
-                    <span className="badge" style={{ background: 'var(--secondary-container)' }}>{q.topic}</span>
+                    <span className="badge" style={{ background: 'var(--secondary-container)' }}>{q.subject}</span>
+                    <span className="badge" style={{ background: 'var(--surface-container-high)', border: '1px solid var(--outline-variant)' }}>{q.topic}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.375rem', flexShrink: 0 }}>
@@ -159,6 +211,13 @@ export default function QuestionBank() {
         variant="danger" confirmLabel="Delete"
         onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)}
       />
+
+      {showBulkModal && (
+        <BulkImportModal 
+          onClose={() => setShowBulkModal(false)} 
+          onSuccess={fetchQuestions} 
+        />
+      )}
     </div>
   );
 }

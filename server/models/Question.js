@@ -17,10 +17,16 @@ const questionSchema = new mongoose.Schema(
         isCorrect: { type: Boolean, default: false },
       },
     ],
-    topic: {
+    subject: {
       type: String,
       required: true,
       trim: true,
+      default: 'General',
+    },
+    topic: {
+      type: String,
+      trim: true,
+      default: 'General',
     },
     difficulty: {
       type: String,

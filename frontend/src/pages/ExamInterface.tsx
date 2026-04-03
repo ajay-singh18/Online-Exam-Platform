@@ -3,9 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useExamStore } from '../store/examStore';
 import { useToastStore } from '../store/toastStore';
 import { useProctoring } from '../hooks/useProctoring';
+import { useFaceProctoring } from '../hooks/useFaceProctoring';
 import { useAutosave } from '../hooks/useAutosave';
 import { startAttempt, submitAttempt } from '../api/attemptApi';
 import QuestionCard from '../components/QuestionCard';
+import WebcamMonitor from '../components/WebcamMonitor';
 
 export default function ExamInterface() {
   const { examId } = useParams();
@@ -22,7 +24,9 @@ export default function ExamInterface() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showViolationOverlay, setShowViolationOverlay] = useState(false);
+  const [lastViolationType, setLastViolationType] = useState('');
   const [examStarted, setExamStarted] = useState(false);
+  const [aiProctoringEnabled, setAiProctoringEnabled] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [totalDurationSecs, setTotalDurationSecs] = useState(0);
 
@@ -38,6 +42,7 @@ export default function ExamInterface() {
         }
         setTimeLeft(data.remainingSeconds);
         setTotalDurationSecs(data.remainingSeconds);
+        setAiProctoringEnabled(data.aiProctoringEnabled || false);
         setExamStarted(true);
       } catch (error: any) {
         addToast(error.response?.data?.message || 'Failed to open exam', 'error');
@@ -53,8 +58,15 @@ export default function ExamInterface() {
   /* Proctoring Logic */
   const { requestFullscreen, shouldForceSubmit, violationCount } = useProctoring(examStarted);
 
+  /* AI Face Proctoring */
+  const { videoRef, faceStatus, cameraError, aiViolationCount, shouldForceSubmitAI } = useFaceProctoring(examStarted && aiProctoringEnabled);
+
   useEffect(() => {
-    if (violations.length > 0) setShowViolationOverlay(true);
+    if (violations.length > 0) {
+      const latest = violations[violations.length - 1];
+      setLastViolationType(latest.type);
+      setShowViolationOverlay(true);
+    }
   }, [violations.length]);
 
   const handleSubmit = useCallback(async (forced = false) => {
@@ -75,6 +87,11 @@ export default function ExamInterface() {
   useEffect(() => {
     if (shouldForceSubmit && attempt?._id) handleSubmit(true);
   }, [shouldForceSubmit, attempt?._id, handleSubmit]);
+
+  /* AI violations: separate threshold */
+  useEffect(() => {
+    if (shouldForceSubmitAI && attempt?._id) handleSubmit(true);
+  }, [shouldForceSubmitAI, attempt?._id, handleSubmit]);
 
   /* Timer Logic */
   useEffect(() => {
@@ -170,7 +187,16 @@ export default function ExamInterface() {
         </div>
 
         {/* Proctoring Status */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {/* AI Webcam Monitor */}
+          {aiProctoringEnabled && (
+            <WebcamMonitor
+              videoRef={videoRef}
+              faceStatus={faceStatus}
+              cameraError={cameraError}
+              aiViolationCount={aiViolationCount}
+            />
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className="animate-pulse" style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', background: '#ef4444' }} />
             <span className="label-xs" style={{ color: 'var(--error)' }}>Proctoring Active</span>
@@ -285,8 +311,19 @@ export default function ExamInterface() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
           <div style={{ background: 'var(--surface)', borderRadius: '1rem', padding: '2rem', maxWidth: '30rem', textAlign: 'center' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--error)' }}>⚠️ Warning!</h2>
-            <p style={{ marginTop: '1rem', color: 'var(--on-surface)', fontWeight: 600 }}>We detected tab switching or resizing.</p>
-            <p style={{ marginTop: '0.5rem', color: 'var(--error)' }}>Violations: {violationCount}/3</p>
+            <p style={{ marginTop: '1rem', color: 'var(--on-surface)', fontWeight: 600 }}>
+              {lastViolationType === 'noFace' && 'No face detected! Please stay visible to the camera.'}
+              {lastViolationType === 'multipleFaces' && 'Multiple faces detected. Only one person is allowed during the exam.'}
+              {lastViolationType === 'lookingAway' && 'You appear to be looking away from the screen.'}
+              {lastViolationType === 'tabSwitch' && 'Tab switching detected. Stay on the exam window.'}
+              {lastViolationType === 'fullscreenExit' && 'You exited fullscreen mode.'}
+              {lastViolationType === 'copyPaste' && 'Copy/paste attempt detected.'}
+              {!lastViolationType && 'A proctoring violation was detected.'}
+            </p>
+            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <p style={{ color: 'var(--error)', fontSize: '0.875rem', fontWeight: 700 }}>Browser: {violationCount}/3</p>
+              {aiProctoringEnabled && <p style={{ color: 'var(--error)', fontSize: '0.875rem', fontWeight: 700 }}>AI: {aiViolationCount}/5</p>}
+            </div>
             <button onClick={() => { setShowViolationOverlay(false); requestFullscreen(); }} className="btn-primary" style={{ marginTop: '1.5rem', width: '100%', justifyContent: 'center' }}>
               Acknowledge and Return
             </button>

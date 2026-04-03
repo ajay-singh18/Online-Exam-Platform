@@ -77,6 +77,7 @@ const startAttempt = async (req, res, next) => {
         serverTime: Date.now(),
         remainingSeconds: Math.floor(remainingSeconds),
         resumed: true,
+        aiProctoringEnabled: exam.aiProctoringEnabled || false,
       });
     }
 
@@ -154,6 +155,7 @@ const startAttempt = async (req, res, next) => {
       questions: safeQuestions,
       serverTime: Date.now(),
       remainingSeconds: exam.durationMins * 60,
+      aiProctoringEnabled: exam.aiProctoringEnabled || false,
     });
   } catch (error) {
     next(error);

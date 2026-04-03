@@ -12,6 +12,8 @@ export function useProctoring(enabled = true) {
   const addViolation = useExamStore((s) => s.addViolation);
   const violations = useExamStore((s) => s.violations);
   const showOverlayRef = useRef(false);
+  const startTime = useRef(Date.now());
+  const WARM_UP_MS = 3000;
 
   /* Request fullscreen */
   const requestFullscreen = useCallback(async () => {
@@ -29,6 +31,7 @@ export function useProctoring(enabled = true) {
     if (!enabled) return;
 
     requestFullscreen();
+    startTime.current = Date.now();
 
     /* Tab switch detection */
     const handleVisibility = () => {
@@ -41,6 +44,9 @@ export function useProctoring(enabled = true) {
     /* Fullscreen exit detection */
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && enabled) {
+        // Skip check during warm-up (3s) to allow auto-fullscreen to settle
+        if (Date.now() - startTime.current < WARM_UP_MS) return;
+
         addViolation({ type: 'fullscreenExit', timestamp: new Date().toISOString() });
         showOverlayRef.current = true;
       }

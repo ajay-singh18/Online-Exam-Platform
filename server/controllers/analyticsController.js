@@ -56,7 +56,7 @@ const getExamSummary = async (req, res, next) => {
     }));
 
     /* Per-question accuracy */
-    const questionAccuracy = questions.map((q) => {
+    const questionAccuracy = questions.map((q, idx) => {
       let correct = 0;
       let total = 0;
 
@@ -70,16 +70,16 @@ const getExamSummary = async (req, res, next) => {
             .map((opt, idx) => (opt.isCorrect ? idx : -1))
             .filter((i) => i !== -1);
 
-          /* For simplicity, check if any selected option matches */
           let isCorrect = false;
-          if (q.type === 'mcq' || q.type === 'truefalse') {
-            isCorrect = correctIndices.includes(resp.selectedOptions[0]);
-          } else if (q.type === 'msq') {
+          if (q.type === 'msq') {
             const sorted1 = [...resp.selectedOptions].sort();
             const sorted2 = [...correctIndices].sort();
             isCorrect =
               sorted1.length === sorted2.length &&
               sorted1.every((v, i) => v === sorted2[i]);
+          } else {
+            // MCQ, True/False, FillBlank (single choice for now)
+            isCorrect = correctIndices.includes(resp.selectedOptions[0]);
           }
 
           if (isCorrect) correct++;
@@ -88,6 +88,7 @@ const getExamSummary = async (req, res, next) => {
 
       return {
         questionId: q._id,
+        label: `Q${idx + 1}`,
         topic: q.topic,
         difficulty: q.difficulty,
         text: q.text.substring(0, 80),
@@ -97,7 +98,7 @@ const getExamSummary = async (req, res, next) => {
     });
 
     /* Average time per question */
-    const avgTimePerQuestion = questions.map((q) => {
+    const timePerQuestion = questions.map((q, idx) => {
       let totalTime = 0;
       let count = 0;
 
@@ -113,8 +114,9 @@ const getExamSummary = async (req, res, next) => {
 
       return {
         questionId: q._id,
+        label: `Q${idx + 1}`,
         topic: q.topic,
-        avgTimeSecs: count > 0 ? Math.round(totalTime / count) : 0,
+        avgTime: count > 0 ? Math.round(totalTime / count) : 0,
       };
     });
 
@@ -129,8 +131,8 @@ const getExamSummary = async (req, res, next) => {
         passRate,
         highestScore,
         scoreDistribution: scoreDistributionFormatted,
-        perQuestionAccuracy: questionAccuracy,
-        avgTimePerQuestion,
+        questionAccuracy,
+        timePerQuestion,
       },
     });
   } catch (error) {

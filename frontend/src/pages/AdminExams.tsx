@@ -13,17 +13,30 @@ export default function AdminExams() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const fetchExams = async () => {
+    setLoading(true);
+    try {
+      const params: any = {};
+      if (debouncedSearch) params.search = debouncedSearch;
+      const { data } = await getExams(params);
+      setExams(data.exams || data || []);
+    } catch { /* interceptor handles */ }
+    finally { setLoading(false); }
+  };
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
-    const fetchExams = async () => {
-      try {
-        const { data } = await getExams();
-        setExams(data.exams || data || []);
-      } catch { /* interceptor handles */ }
-      finally { setLoading(false); }
-    };
     fetchExams();
-  }, []);
+  }, [debouncedSearch]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -35,9 +48,8 @@ export default function AdminExams() {
     finally { setDeleteTarget(null); }
   };
 
-  const filteredExams = exams.filter((exam: any) =>
-    exam.title?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Server-side filtering is now used via debouncedSearch state
+  const displayedExams = exams;
 
   if (loading) return <LoadingSpinner message="Loading exams..." />;
 
@@ -59,16 +71,24 @@ export default function AdminExams() {
         </button>
       </div>
 
-      {/* Search */}
-      <div style={{ position: 'relative', maxWidth: '24rem' }}>
-        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline-variant)', fontSize: '1.25rem' }}>search</span>
+      {/* Search Bar */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '24rem' }}>
+        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>search</span>
         <input
           className="ghost-input"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search exams..."
-          style={{ borderRadius: 'var(--radius-lg)', fontSize: '0.875rem' }}
+          placeholder="Search exams by title or description..."
+          style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem', width: '100%' }}
         />
+        {search && (
+          <button 
+            onClick={() => setSearch('')}
+            style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: 'var(--outline)', cursor: 'pointer' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>close</span>
+          </button>
+        )}
       </div>
 
       {/* Stats Row */}
@@ -89,7 +109,7 @@ export default function AdminExams() {
       </div>
 
       {/* Exams Table */}
-      {filteredExams.length === 0 ? (
+      {displayedExams.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--on-secondary-container)', background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--outline-variant)', display: 'block', marginBottom: '1rem' }}>search_off</span>
           <p style={{ fontWeight: 600 }}>
@@ -110,7 +130,7 @@ export default function AdminExams() {
               </tr>
             </thead>
             <tbody>
-              {filteredExams.map((exam: any) => (
+              {displayedExams.map((exam: any) => (
                 <tr key={exam._id}>
                   <td style={{ fontWeight: 700, color: 'var(--primary-container)' }}>{exam.title}</td>
                   <td>{exam.durationMins} min</td>
