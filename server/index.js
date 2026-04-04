@@ -30,22 +30,23 @@ app.use(helmet({
   crossOriginOpenerPolicy: false,
   frameguard: false,
 }));
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map(s => s.trim());
+const clientUrl = process.env.CLIENT_URL;
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    // Return false instead of throwing — prevents 500 on preflight
-    return callback(null, false);
-  },
-  credentials: true,
-}));
+if (clientUrl) {
+  // Restrict to specific origins when CLIENT_URL is set
+  const allowedOrigins = clientUrl.split(',').map(s => s.trim());
+  app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, false);
+    },
+    credentials: true,
+  }));
+} else {
+  // Allow all origins when no CLIENT_URL is configured
+  app.use(cors({ origin: true, credentials: true }));
+}
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
