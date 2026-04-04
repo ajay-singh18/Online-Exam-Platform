@@ -520,6 +520,24 @@ textarea:focus {
   .grid-responsive {
     grid-template-columns: 1fr !important;
   }
+
+  /* Centering Utilities for Mobile */
+  .text-center-mobile {
+    text-align: center !important;
+  }
+
+  .flex-center-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .margin-auto-mobile {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
 }
 
 /* === Tab switcher === */

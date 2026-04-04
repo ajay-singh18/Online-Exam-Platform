@@ -189,19 +189,19 @@ export default function RegisterPage() {
         </section>
 
         {/* Right Registration Form */}
-        <section style={{
+        <section className="register-form-section" style={{
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-start',
-          padding: '2.5rem 4rem',
+          padding: '2.5rem 1.5rem',
           background: 'var(--surface)',
           overflowY: 'auto',
         }}>
           <div style={{ maxWidth: '30rem', width: '100%', margin: '0 auto' }}>
 
             {/* Header */}
-            <div style={{ marginBottom: '2rem' }}>
+            <div className="text-center-mobile" style={{ marginBottom: '2rem' }}>
               <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--on-surface)', letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>Create Your Account</h3>
               <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>Select your role and complete registration</p>
             </div>
@@ -369,10 +369,10 @@ export default function RegisterPage() {
       </main>
 
       {/* Footer */}
-      <footer style={{ background: 'var(--surface)', padding: '1.5rem 3rem', borderTop: '1px solid var(--surface-container-high)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '90rem', margin: '0 auto' }}>
-          <p className="label-xs" style={{ color: 'var(--outline)' }}>© 2024 AcademicPro Proctoring Systems. Secure Assessment Environment.</p>
-          <div style={{ display: 'flex', gap: '2rem' }}>
+      <footer className="auth-footer" style={{ background: 'var(--surface)', padding: '1.5rem 1.5rem', borderTop: '1px solid var(--surface-container-high)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', maxWidth: '90rem', margin: '0 auto', textAlign: 'center' }}>
+          <p className="label-xs" style={{ color: 'var(--outline)' }}>© 2024 AcademicPro Proctoring Systems.</p>
+          <div className="auth-footer-links" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
             {['Privacy Policy', 'Terms of Service', 'Security Whitepaper', 'Accessibility'].map(link => (
               <a key={link} href="#" style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--secondary)', textTransform: 'uppercase', textDecoration: 'none', transition: 'color 0.15s' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = 'var(--on-primary-fixed)'}
@@ -427,7 +427,9 @@ export default function RegisterPage() {
       <style>{`
         @media (min-width: 768px) {
           .register-hero { display: flex !important; }
-          section:last-of-type { width: 40% !important; padding: 2.5rem 4rem !important; }
+          .register-form-section { width: 40% !important; padding: 2.5rem 4rem !important; }
+          .auth-footer { padding: 1.5rem 3rem !important; }
+          .auth-footer > div { flex-direction: row !important; justify-content: space-between !important; text-align: left !important; }
         }
       `}</style>
     </div>

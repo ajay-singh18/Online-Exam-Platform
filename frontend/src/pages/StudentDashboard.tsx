@@ -84,7 +84,7 @@ export default function StudentDashboard() {
   return (
     <div style={{ padding: '2rem', maxWidth: '80rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       {/* Greeting */}
-      <section>
+      <section className="text-center-mobile flex-center-mobile">
         <h2 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--primary-container)', letterSpacing: '-0.025em' }}>
           Welcome back, {user?.name?.split(' ')[0] || 'Student'}!
         </h2>
