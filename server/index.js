@@ -84,4 +84,12 @@ const start = async () => {
   }
 };
 
-start();
+if (process.env.NODE_ENV !== 'production') {
+  start();
+} else {
+  /* Vercel Serverless Execution */
+  connectDB();
+  configureCloudinary();
+}
+
+module.exports = app;

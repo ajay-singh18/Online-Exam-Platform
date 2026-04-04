@@ -91,6 +91,18 @@ A comprehensive, multi-role SaaS platform where institutes (coaching centres, co
 
 The frontend will typically run on `http://localhost:5173`, and interface with the backend API on `http://localhost:5000`.
 
+## 🚀 Deployment (Vercel)
+
+This project contains a unified `vercel.json` meaning it is fully pre-configured to deploy easily to [Vercel](https://vercel.com).
+
+1. Import your repository into Vercel.
+2. In the setup screen, leave the **Root Directory** as the repository root.
+3. Don't select a framework preset (leave it default or "Other"). Vercel will automatically read the `vercel.json` file.
+4. Supply your `.env` variables in the **Environment Variables** deployment settings.
+5. Hit **Deploy**. The unified build uses `@vercel/static-build` for your React frontend and `@vercel/node` for your Express backend API.
+
+*Note: The `server/index.js` automatically detects production and exports the app as serverless functions, bypassing fixed TCP port bindings.*
+
 ## 👥 Usage / Roles
 
 1. **Super Admin**: Manages global system settings, onboard institutes, and manages subscriptions.
