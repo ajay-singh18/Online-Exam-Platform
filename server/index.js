@@ -1,5 +1,4 @@
 require('dotenv').config({ override: true });
-console.log('--- DEBUG INITIAL CLOUDINARY ---', process.env.CLOUDINARY_CLOUD_NAME);
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -42,7 +41,8 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error('Not allowed by CORS'));
+    // Return false instead of throwing — prevents 500 on preflight
+    return callback(null, false);
   },
   credentials: true,
 }));
@@ -99,8 +99,18 @@ if (process.env.NODE_ENV !== 'production') {
   start();
 } else {
   /* Vercel Serverless Execution */
-  connectDB();
+  let dbReady = connectDB();
   configureCloudinary();
+
+  // Ensure DB is connected before handling any request
+  app.use(async (req, res, next) => {
+    try {
+      await dbReady;
+      next();
+    } catch (err) {
+      res.status(500).json({ message: 'Database connection failed' });
+    }
+  });
 }
 
 module.exports = app;
