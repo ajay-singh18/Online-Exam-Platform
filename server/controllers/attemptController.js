@@ -338,6 +338,7 @@ const getAttemptResult = async (req, res, next) => {
         _id: q._id,
         text: q.text,
         type: q.type,
+        subject: q.subject,
         topic: q.topic,
         difficulty: q.difficulty,
         imageUrl: q.imageUrl,

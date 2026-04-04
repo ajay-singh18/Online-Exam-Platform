@@ -29,16 +29,26 @@ export default function ExamResults() {
 
   const responses = result.responses || [];
 
-  // Build per-topic stats
+  // Build per-topic and per-subject stats
   const topicMap: Record<string, { correct: number; total: number }> = {};
+  const subjectMap: Record<string, { correct: number; total: number }> = {};
   questions.forEach((q: any) => {
     const topic = q.topic || 'General';
+    const subject = q.subject || 'General';
     if (!topicMap[topic]) topicMap[topic] = { correct: 0, total: 0 };
+    if (!subjectMap[subject]) subjectMap[subject] = { correct: 0, total: 0 };
     topicMap[topic].total++;
+    subjectMap[subject].total++;
+    
     const resp = responses.find((r: any) => r.questionId === q._id);
     const correctIdxs = q.options?.map((o: any, idx: number) => o.isCorrect ? idx : -1).filter((x: number) => x >= 0) || [];
     const selected = resp?.selectedOptions || [];
-    if (JSON.stringify([...selected].sort((a: number, b: number) => a - b)) === JSON.stringify([...correctIdxs].sort((a: number, b: number) => a - b))) topicMap[topic].correct++;
+    const isCorrect = JSON.stringify([...selected].sort((a: number, b: number) => a - b)) === JSON.stringify([...correctIdxs].sort((a: number, b: number) => a - b));
+    
+    if (isCorrect) {
+      topicMap[topic].correct++;
+      subjectMap[subject].correct++;
+    }
   });
 
   return (
@@ -88,28 +98,56 @@ export default function ExamResults() {
         </div>
       </div>
 
-      {/* Topic-wise Breakdown */}
-      {Object.keys(topicMap).length > 0 && (
-        <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', padding: '2rem', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-container)', marginBottom: '1.25rem' }}>Topic-wise Performance</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {Object.entries(topicMap).map(([topic, stats]) => {
-              const pct = Math.round((stats.correct / stats.total) * 100);
-              return (
-                <div key={topic}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--on-surface)', fontSize: '0.875rem' }}>{topic}</span>
-                    <span style={{ fontWeight: 700, color: 'var(--on-secondary-container)', fontSize: '0.8125rem' }}>{stats.correct}/{stats.total} ({pct}%)</span>
+      {/* Breakdown Grids */}
+      <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        
+        {/* Subject-wise Breakdown */}
+        {Object.keys(subjectMap).length > 0 && (
+          <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', padding: '2rem', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-container)', marginBottom: '1.25rem' }}>Subject-wise Performance</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {Object.entries(subjectMap).map(([subject, stats]) => {
+                const pct = Math.round((stats.correct / stats.total) * 100);
+                return (
+                  <div key={subject}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--on-surface)', fontSize: '0.875rem' }}>{subject}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--on-secondary-container)', fontSize: '0.8125rem' }}>{stats.correct}/{stats.total} ({pct}%)</span>
+                    </div>
+                    <div style={{ height: '6px', background: 'var(--surface-container-high)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: pct >= 60 ? 'var(--on-tertiary-container)' : 'var(--error)', borderRadius: 'var(--radius-full)', transition: 'width 0.5s ease' }} />
+                    </div>
                   </div>
-                  <div style={{ height: '6px', background: 'var(--surface-container-high)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, background: pct >= 60 ? 'var(--on-tertiary-container)' : 'var(--error)', borderRadius: 'var(--radius-full)', transition: 'width 0.5s ease' }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Topic-wise Breakdown */}
+        {Object.keys(topicMap).length > 0 && (
+          <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', padding: '2rem', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-container)', marginBottom: '1.25rem' }}>Topic-wise Performance</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {Object.entries(topicMap).map(([topic, stats]) => {
+                const pct = Math.round((stats.correct / stats.total) * 100);
+                return (
+                  <div key={topic}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--on-surface)', fontSize: '0.875rem' }}>{topic}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--on-secondary-container)', fontSize: '0.8125rem' }}>{stats.correct}/{stats.total} ({pct}%)</span>
+                    </div>
+                    <div style={{ height: '6px', background: 'var(--surface-container-high)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: pct >= 60 ? 'var(--on-tertiary-container)' : 'var(--error)', borderRadius: 'var(--radius-full)', transition: 'width 0.5s ease' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
 
       {/* Per-Question Details */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

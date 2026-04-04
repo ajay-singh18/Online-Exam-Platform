@@ -192,6 +192,14 @@ textarea:focus {
   text-align: left;
 }
 
+@media (max-width: 768px) {
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
 .data-table thead tr {
   background: rgba(210, 217, 244, 0.4);
 }
@@ -228,8 +236,28 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   padding: 1rem 0;
+  z-index: 50;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(19, 27, 46, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 40;
-  transition: all 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-link {
@@ -436,13 +464,61 @@ textarea:focus {
   width: 100%;
 }
 
+/* === CSS Visibility Utilities === */
+.mobile-only {
+  display: none !important;
+}
+.desktop-only {
+  display: block !important;
+}
+
 /* === Responsive === */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
+  .mobile-only {
+    display: block !important;
   }
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Force all inline grid configurations to stack into 1 column on mobile */
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
   .main-content {
     margin-left: 0;
+  }
+
+  .featured-card {
+    padding: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .top-header {
+    padding: 0 1rem;
+  }
+  
+  /* Make sure flex grids break down gracefully */
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
   }
 }
 

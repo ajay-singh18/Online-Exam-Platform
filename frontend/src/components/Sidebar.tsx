@@ -11,9 +11,11 @@ interface SidebarProps {
   readonly links: SidebarLink[];
   readonly portalName: string;
   readonly portalSubtitle: string;
+  readonly isOpen?: boolean;
+  readonly onClose?: () => void;
 }
 
-export default function Sidebar({ links, portalName, portalSubtitle }: SidebarProps) {
+export default function Sidebar({ links, portalName, portalSubtitle, isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const logout = useAuthStore((s: any) => s.logout);
 
@@ -23,7 +25,13 @@ export default function Sidebar({ links, portalName, portalSubtitle }: SidebarPr
   };
 
   return (
-    <aside className="sidebar">
+    <>
+      {/* Mobile overlay */}
+      <div 
+        className={`sidebar-overlay mobile-only ${isOpen ? 'open' : ''}`}
+        onClick={onClose}
+      />
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div style={{ padding: '1rem 1.5rem', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--primary-container)', letterSpacing: '-0.05em' }}>
           {portalName}
@@ -40,6 +48,7 @@ export default function Sidebar({ links, portalName, portalSubtitle }: SidebarPr
             to={link.path}
             end={link.path === '/student' || link.path === '/admin' || link.path === '/superadmin'}
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
+            onClick={onClose}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>{link.icon}</span>
             {link.label}
@@ -59,5 +68,6 @@ export default function Sidebar({ links, portalName, portalSubtitle }: SidebarPr
         </button>
       </div>
     </aside>
+    </>
   );
 }

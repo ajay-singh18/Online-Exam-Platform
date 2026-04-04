@@ -49,7 +49,7 @@ export default function Help() {
         <p style={{ color: 'var(--on-secondary-container)' }}>Find answers to common questions or reach out to support.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '2rem' }}>
+      <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--on-surface)' }}>Frequently Asked Questions</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

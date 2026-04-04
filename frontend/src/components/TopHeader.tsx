@@ -4,9 +4,10 @@ import { useToastStore } from '../store/toastStore';
 
 interface TopHeaderProps {
   readonly title?: string;
+  readonly onMenuClick?: () => void;
 }
 
-export default function TopHeader({ title = 'AcademicPro Proctor' }: TopHeaderProps) {
+export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }: TopHeaderProps) {
   const user = useAuthStore((s: any) => s.user);
   const addToast = useToastStore((s: any) => s.addToast);
   const navigate = useNavigate();
@@ -28,7 +29,20 @@ export default function TopHeader({ title = 'AcademicPro Proctor' }: TopHeaderPr
   return (
     <header className="top-header glass-panel">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.05em', color: 'var(--primary-container)' }}>
+        <button 
+          onClick={onMenuClick}
+          className="mobile-only"
+          style={{ 
+            padding: '0.25rem', 
+            background: 'none', 
+            border: 'none',
+            color: 'var(--primary-container)',
+            cursor: 'pointer'
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>menu</span>
+        </button>
+        <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.05em', color: 'var(--primary-container)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {title}
         </span>
       </div>
