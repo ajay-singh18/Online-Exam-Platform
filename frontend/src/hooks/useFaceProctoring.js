@@ -15,6 +15,8 @@ import { useExamStore } from '../store/examStore';
 
 const FACE_DETECTION_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js';
 const CAMERA_UTILS_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js';
+const TF_CDN = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js';
+const COCO_SSD_CDN = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd';
 
 /* Cooldown: minimum ms between same violation type */
 const VIOLATION_COOLDOWN_MS = 8000;
@@ -51,20 +53,25 @@ export function useFaceProctoring(enabled = true) {
   const [faceStatus, setFaceStatus] = useState({
     faceCount: 0,
     isLookingAway: false,
+    phoneDetected: false,
     status: 'initializing', // 'initializing' | 'running' | 'error' | 'denied'
   });
   const [cameraError, setCameraError] = useState(null);
 
   /* Track cooldowns and gaze timing */
+  const objectDetectorRef = useRef(null);
+  const lastObjDetectionTime = useRef(0);
   const lastViolationTime = useRef({});
   const gazeAwayStart = useRef(null);
+  const noFaceStart = useRef(null);
+  const multipleFacesStart = useRef(null);
   const currentGazeDirection = useRef(null);
   const sessionStartTime = useRef(Date.now());
   const WARM_UP_MS = 5000;
 
   /* Count only AI violations */
   const aiViolationCount = violations.filter((v) =>
-    ['noFace', 'multipleFaces', 'lookingAway'].includes(v.type)
+    ['noFace', 'multipleFaces', 'lookingAway', 'phoneDetected'].includes(v.type)
   ).length;
 
   const shouldForceSubmitAI = aiViolationCount >= AI_VIOLATION_LIMIT;
@@ -161,11 +168,24 @@ export function useFaceProctoring(enabled = true) {
 
       /* Fire violations */
       if (faceCount === 0) {
+        if (!noFaceStart.current) noFaceStart.current = Date.now();
+        const elapsed = (Date.now() - noFaceStart.current) / 1000;
         // Skip noFace check during initial warm-up to allow camera to start
-        if (Date.now() - sessionStartTime.current < WARM_UP_MS) return;
-        fireViolation('noFace');
-      } else if (faceCount >= 2) {
-        fireViolation('multipleFaces');
+        if (Date.now() - sessionStartTime.current > WARM_UP_MS && elapsed >= 3) {
+          fireViolation('noFace');
+        }
+      } else {
+        noFaceStart.current = null;
+      }
+
+      if (faceCount >= 2) {
+        if (!multipleFacesStart.current) multipleFacesStart.current = Date.now();
+        const elapsed = (Date.now() - multipleFacesStart.current) / 1000;
+        if (elapsed >= 3) {
+          fireViolation('multipleFaces');
+        }
+      } else {
+        multipleFacesStart.current = null;
       }
 
       setFaceStatus({
@@ -189,6 +209,8 @@ export function useFaceProctoring(enabled = true) {
         /* Load CDN scripts */
         await loadScript(CAMERA_UTILS_CDN);
         await loadScript(FACE_DETECTION_CDN);
+        await loadScript(TF_CDN);
+        await loadScript(COCO_SSD_CDN);
 
         if (cancelled) return;
 
@@ -211,6 +233,11 @@ export function useFaceProctoring(enabled = true) {
         detector.onResults(onResults);
         detectorRef.current = detector;
 
+        /* Load COCO-SSD */
+        if (window.cocoSsd) {
+          objectDetectorRef.current = await window.cocoSsd.load();
+        }
+
         /* Get webcam stream */
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { width: 320, height: 240, facingMode: 'user' },
@@ -231,6 +258,31 @@ export function useFaceProctoring(enabled = true) {
               onFrame: async () => {
                 if (detectorRef.current && videoRef.current) {
                   await detectorRef.current.send({ image: videoRef.current });
+                }
+                
+                /* Object Detection Throttled */
+                if (objectDetectorRef.current && videoRef.current) {
+                  const now = Date.now();
+                  if (now - lastObjDetectionTime.current > 1000) {
+                    lastObjDetectionTime.current = now;
+                    try {
+                      const predictions = await objectDetectorRef.current.detect(videoRef.current);
+                      const hasPhone = predictions.some((p) => p.class === 'cell phone' && p.score > 0.5);
+                      
+                      setFaceStatus((prev) => {
+                        if (prev.phoneDetected !== hasPhone) {
+                          return { ...prev, phoneDetected: hasPhone };
+                        }
+                        return prev;
+                      });
+
+                      if (hasPhone) {
+                        fireViolation('phoneDetected');
+                      }
+                    } catch (e) {
+                      console.warn('Object detection error', e);
+                    }
+                  }
                 }
               },
               width: 320,

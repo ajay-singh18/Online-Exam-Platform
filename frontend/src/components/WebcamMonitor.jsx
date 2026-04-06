@@ -3,11 +3,12 @@
  * Shows live feed, face count, gaze status, and AI violation count.
  */
 export default function WebcamMonitor({ videoRef, faceStatus, cameraError, aiViolationCount }) {
-  const { faceCount, isLookingAway, status } = faceStatus;
+  const { faceCount, isLookingAway, phoneDetected, status } = faceStatus;
 
   /* Status color logic */
   const getStatusColor = () => {
     if (status === 'error' || status === 'denied') return '#6b7280';
+    if (phoneDetected) return '#ef4444';
     if (faceCount === 0 || faceCount >= 2) return '#ef4444';
     if (isLookingAway) return '#f59e0b';
     return '#22c55e';
@@ -17,6 +18,7 @@ export default function WebcamMonitor({ videoRef, faceStatus, cameraError, aiVio
     if (status === 'initializing') return 'Starting camera...';
     if (status === 'denied') return 'Camera denied';
     if (status === 'error') return 'Camera error';
+    if (phoneDetected) return 'Phone detected!';
     if (faceCount === 0) return 'No face detected';
     if (faceCount >= 2) return `${faceCount} faces detected`;
     if (isLookingAway) return 'Looking away';
