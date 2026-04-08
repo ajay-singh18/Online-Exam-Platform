@@ -112,6 +112,7 @@ export default function ExamStudents() {
                 <th>#</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Batch</th>
                 <th style={{ textAlign: 'center' }}>Status</th>
               </tr>
             </thead>
@@ -121,6 +122,7 @@ export default function ExamStudents() {
                   <td style={{ color: 'var(--on-secondary-container)' }}>{i + 1}</td>
                   <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{s.name || '—'}</td>
                   <td style={{ color: 'var(--on-secondary-container)' }}>{s.email || '—'}</td>
+                  <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.batchNames || '—'}</td>
                   <td style={{ textAlign: 'center' }}>
                     <span className={`badge ${s.isVerified ? 'badge-success' : 'badge-info'}`}>
                       {s.isVerified ? 'Verified' : 'Pending'}

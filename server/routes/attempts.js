@@ -5,6 +5,7 @@ const {
   submitAttempt,
   getMyAttempts,
   getExamAttempts,
+  getMissedStudents,
   getAttemptResult,
 } = require('../controllers/attemptController');
 const { verifyToken, requireRole } = require('../middleware/auth');
@@ -18,6 +19,7 @@ router.put('/save/:attemptId', saveAttempt);
 router.post('/submit/:attemptId', submitAttempt);
 router.get('/my', getMyAttempts);
 router.get('/exam/:examId', requireRole('admin', 'superAdmin'), getExamAttempts);
+router.get('/exam/:examId/missed', requireRole('admin', 'superAdmin'), getMissedStudents);
 router.get('/:attemptId/result', getAttemptResult);
 
 module.exports = router;

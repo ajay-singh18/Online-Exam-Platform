@@ -274,7 +274,9 @@ const submitAttempt = async (req, res, next) => {
         
         // 2. Broadcast via socket
         const io = getIo();
-        io.to(exam.instituteId.toString()).emit('new_notification', {
+        const room = String(exam.instituteId);
+        console.log(`[Notification] Emitting to room: ${room}`);
+        io.to(room).emit('new_notification', {
           message: `${req.user.name} submitted "${exam.title}"`,
           studentName: req.user.name,
           examTitle: exam.title,
@@ -324,10 +326,22 @@ const getMyAttempts = async (req, res, next) => {
  */
 const getExamAttempts = async (req, res, next) => {
   try {
-    const attempts = await Attempt.find({ examId: req.params.examId })
+    const allAttempts = await Attempt.find({ examId: req.params.examId, submittedAt: { $ne: null } })
       .populate('userId', 'name email')
       .sort({ submittedAt: -1 })
       .lean();
+
+    /* Deduplicate: keep only the BEST attempt per student (highest percentage) */
+    const bestByUser = new Map();
+    for (const a of allAttempts) {
+      if (!a.userId) continue;
+      const uid = a.userId._id.toString();
+      const existing = bestByUser.get(uid);
+      if (!existing || (a.percentage || 0) > (existing.percentage || 0)) {
+        bestByUser.set(uid, a);
+      }
+    }
+    const attempts = Array.from(bestByUser.values());
 
     const Batch = require('../models/Batch');
     for (let a of attempts) {
@@ -338,6 +352,62 @@ const getExamAttempts = async (req, res, next) => {
     }
 
     res.json({ success: true, attempts });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/attempts/exam/:examId/missed
+ * Admin: students enrolled but did NOT submit.
+ */
+const getMissedStudents = async (req, res, next) => {
+  try {
+    const { examId } = req.params;
+    const exam = await Exam.findById(examId);
+    if (!exam) return res.status(404).json({ message: 'Exam not found' });
+
+    const Batch = require('../models/Batch');
+    const User = require('../models/User');
+
+    /* Collect all enrolled student IDs */
+    let enrolledIds = [...(exam.allowedStudents || []).map(id => id.toString())];
+
+    /* Add students from allowed batches */
+    if (exam.allowedBatches && exam.allowedBatches.length > 0) {
+      const batches = await Batch.find({ _id: { $in: exam.allowedBatches } }).lean();
+      for (const batch of batches) {
+        for (const sid of batch.students) {
+          enrolledIds.push(sid.toString());
+        }
+      }
+    }
+
+    /* If enrollAll, get all students in the institute */
+    if (exam.enrollAll) {
+      const allStudents = await User.find({ instituteId: exam.instituteId, role: 'student' }).select('_id').lean();
+      enrolledIds = allStudents.map(s => s._id.toString());
+    }
+
+    /* Deduplicate */
+    enrolledIds = [...new Set(enrolledIds)];
+
+    /* Find all students who submitted */
+    const submittedAttempts = await Attempt.find({ examId, submittedAt: { $ne: null } }).select('userId').lean();
+    const submittedIds = new Set(submittedAttempts.map(a => a.userId.toString()));
+
+    /* Missed = enrolled but not submitted */
+    const missedIds = enrolledIds.filter(id => !submittedIds.has(id));
+
+    /* Fetch user details + batch info */
+    const missedStudents = await User.find({ _id: { $in: missedIds } }).select('name email').lean();
+
+    for (const student of missedStudents) {
+      const batches = await Batch.find({ students: student._id }).select('name').lean();
+      student.batchNames = batches.map(b => b.name).join(', ');
+    }
+
+    res.json({ success: true, missed: missedStudents, totalEnrolled: enrolledIds.length, totalSubmitted: submittedIds.size });
   } catch (error) {
     next(error);
   }
@@ -417,5 +487,7 @@ module.exports = {
   submitAttempt,
   getMyAttempts,
   getExamAttempts,
+  getMissedStudents,
   getAttemptResult,
 };
+

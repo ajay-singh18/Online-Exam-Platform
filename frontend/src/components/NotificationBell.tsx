@@ -10,8 +10,11 @@ export default function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (user?.instituteId) {
-      initSocket(user.instituteId);
+    if (user?.instituteId && (user.role === 'admin' || user.role === 'superAdmin')) {
+      // instituteId may be a populated object { _id, name, plan } or a plain string
+      const rawId = user.instituteId;
+      const id = typeof rawId === 'object' ? (rawId._id || rawId) : rawId;
+      initSocket(String(id));
       fetchNotifications();
     }
   }, [user]);

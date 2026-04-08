@@ -185,16 +185,43 @@ const deleteExam = async (req, res, next) => {
  */
 const getEnrolledStudents = async (req, res, next) => {
   try {
-    const exam = await Exam.findById(req.params.id).populate(
-      'allowedStudents',
-      'name email'
-    );
+    const exam = await Exam.findById(req.params.id).lean();
 
     if (!exam) {
       return res.status(404).json({ message: 'Exam not found' });
     }
 
-    res.json({ success: true, students: exam.allowedStudents });
+    let studentIds = [...(exam.allowedStudents || []).map(id => id.toString())];
+
+    /* Add students from allowed batches */
+    if (exam.allowedBatches && exam.allowedBatches.length > 0) {
+      const batches = await Batch.find({ _id: { $in: exam.allowedBatches } }).lean();
+      for (const batch of batches) {
+        for (const sid of batch.students) {
+          studentIds.push(sid.toString());
+        }
+      }
+    }
+
+    /* If enrollAll, get all students in the institute */
+    if (exam.enrollAll) {
+      const allStudents = await User.find({ instituteId: exam.instituteId, role: 'student' }).select('_id').lean();
+      studentIds = allStudents.map(s => s._id.toString());
+    }
+
+    /* Deduplicate */
+    studentIds = [...new Set(studentIds)];
+
+    /* Fetch full student details */
+    const students = await User.find({ _id: { $in: studentIds } }).select('name email isVerified').lean();
+
+    /* Add batch names */
+    for (const student of students) {
+      const batches = await Batch.find({ students: student._id }).select('name').lean();
+      student.batchNames = batches.map(b => b.name).join(', ');
+    }
+
+    res.json({ success: true, students });
   } catch (error) {
     next(error);
   }

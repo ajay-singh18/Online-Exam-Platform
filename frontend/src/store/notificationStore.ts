@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { io } from 'socket.io-client';
-import axios from 'axios';
+import api from '../api/axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001';
 
 interface Notification {
@@ -35,17 +34,20 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   initSocket: (instituteId: string) => {
     if (get().socket) return;
 
+    console.log('[Notification] Connecting socket, room:', instituteId);
+
     const socket = io(SOCKET_URL);
     
     socket.on('connect', () => {
-      console.log('Socket connected');
+      console.log('[Notification] Socket connected:', socket.id);
       socket.emit('join_institute', instituteId);
     });
 
     socket.on('new_notification', (data) => {
+      console.log('[Notification] Received:', data);
       set((state) => {
         const newNotif = {
-           _id: Math.random().toString(), // Temp ID if server data isn't full notif
+           _id: Date.now().toString(),
            message: data.message,
            isRead: false,
            createdAt: new Date().toISOString(),
@@ -57,9 +59,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           unreadCount: state.unreadCount + 1
         };
       });
-      
-      // We could also trigger a Toast here if we want global access
-      // But we'll handle UI specifically in the bell
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('[Notification] Socket connection error:', err.message);
     });
 
     set({ socket });
@@ -68,7 +71,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   fetchNotifications: async () => {
     set({ loading: true });
     try {
-      const { data } = await axios.get(`${API_URL}/notifications`, { withCredentials: true });
+      const { data } = await api.get('/notifications');
       if (data.success) {
         set({ 
           notifications: data.notifications,
@@ -84,7 +87,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAsRead: async (id: string) => {
     try {
-      await axios.patch(`${API_URL}/notifications/${id}/read`, {}, { withCredentials: true });
+      await api.patch(`/notifications/${id}/read`);
       set((state) => ({
         notifications: state.notifications.map((n) => 
           n._id === id ? { ...n, isRead: true } : n
@@ -98,7 +101,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAllAsRead: async () => {
     try {
-      await axios.patch(`${API_URL}/notifications/read-all`, {}, { withCredentials: true });
+      await api.patch('/notifications/read-all');
       set((state) => ({
         notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
         unreadCount: 0

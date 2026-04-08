@@ -15,8 +15,9 @@ const initSocket = (server) => {
 
     socket.on('join_institute', (instituteId) => {
       if (instituteId) {
-        socket.join(instituteId.toString());
-        console.log(`Socket ${socket.id} joined room: ${instituteId}`);
+        const room = String(instituteId);
+        socket.join(room);
+        console.log(`Socket ${socket.id} joined room: ${room}`);
       }
     });
 

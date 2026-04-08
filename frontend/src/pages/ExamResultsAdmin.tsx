@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getExamAttempts } from '../api/attemptApi';
+import { getExamAttempts, getMissedStudents } from '../api/attemptApi';
 import { getExams } from '../api/examApi';
 import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -14,6 +14,11 @@ export default function ExamResultsAdmin() {
   const [attempts, setAttempts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedAttempt, setExpandedAttempt] = useState<string | null>(null);
+
+  /* Missed students state */
+  const [showMissed, setShowMissed] = useState(false);
+  const [missedData, setMissedData] = useState<any>(null);
+  const [loadingMissed, setLoadingMissed] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +36,23 @@ export default function ExamResultsAdmin() {
     if (examId) fetchData();
   }, [examId]);
 
+  const handleShowMissed = async () => {
+    if (showMissed) {
+      setShowMissed(false);
+      return;
+    }
+    setLoadingMissed(true);
+    try {
+      const { data } = await getMissedStudents(examId);
+      setMissedData(data);
+      setShowMissed(true);
+    } catch {
+      addToast('Failed to load missed students', 'error');
+    } finally {
+      setLoadingMissed(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner message="Loading results..." />;
 
   const avgScore = attempts.length > 0 ? Math.round(attempts.reduce((s: number, a: any) => s + (a.percentage || 0), 0) / attempts.length) : 0;
@@ -43,10 +65,23 @@ export default function ExamResultsAdmin() {
           <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-container)' }}>Exam Results</h2>
           <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>{exam?.title || 'Exam'} — {attempts.length} submission{attempts.length !== 1 ? 's' : ''}</p>
         </div>
-        <button className="btn-secondary" onClick={() => navigate('/admin')}>
-          <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>arrow_back</span>
-          Back
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button
+            className="btn-secondary"
+            onClick={handleShowMissed}
+            disabled={loadingMissed}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>
+              {showMissed ? 'visibility_off' : 'person_off'}
+            </span>
+            {loadingMissed ? 'Loading...' : showMissed ? 'Hide Missed' : 'Missed Students'}
+          </button>
+          <button className="btn-secondary" onClick={() => navigate('/admin')}>
+            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>arrow_back</span>
+            Back
+          </button>
+        </div>
       </div>
 
       {/* Summary Stats */}
@@ -66,6 +101,48 @@ export default function ExamResultsAdmin() {
           </div>
         ))}
       </div>
+
+      {/* Missed Students Panel */}
+      {showMissed && missedData && (
+        <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--surface-container-high)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h3 style={{ fontWeight: 800, color: 'var(--error)', fontSize: '1rem' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1.125rem', verticalAlign: 'middle', marginRight: '0.5rem' }}>person_off</span>
+                Missed Students
+              </h3>
+              <p style={{ fontSize: '0.8125rem', color: 'var(--on-secondary-container)', marginTop: '0.25rem' }}>
+                {missedData.missed.length} of {missedData.totalEnrolled} enrolled students did not submit
+              </p>
+            </div>
+          </div>
+          {missedData.missed.length === 0 ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--on-secondary-container)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '2rem', display: 'block', marginBottom: '0.5rem', color: 'var(--primary-container)' }}>check_circle</span>
+              <p style={{ fontWeight: 600 }}>All enrolled students have submitted! 🎉</p>
+            </div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Email</th>
+                  <th>Batch</th>
+                </tr>
+              </thead>
+              <tbody>
+                {missedData.missed.map((s: any) => (
+                  <tr key={s._id}>
+                    <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{s.name}</td>
+                    <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.email}</td>
+                    <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.batchNames || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {/* Results Table */}
       {attempts.length === 0 ? (

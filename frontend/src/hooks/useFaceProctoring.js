@@ -104,22 +104,47 @@ export function useFaceProctoring(enabled = true) {
           const centerY = bbox.yCenter;
  
           /* Head Rotation (Yaw) Detection using landmarks 
-             Landmarks: 0=RightEye, 1=LeftEye, 2=NoseTip [6 total]
+             Landmarks: 0=RightEye, 1=LeftEye, 2=NoseTip, 3=Mouth, 4=RightEarTragion, 5=LeftEarTragion
           */
           let isHeadTurned = false;
+          let headTurnSeverity = 0; // 0 = none, 1 = mild, 2 = strong
           if (detection.landmarks) {
             const rightEye = detection.landmarks[0];
             const leftEye = detection.landmarks[1];
             const nose = detection.landmarks[2];
+            const rightEar = detection.landmarks[4];
+            const leftEar = detection.landmarks[5];
    
             if (rightEye && leftEye && nose) {
               const eyeDist = Math.abs(leftEye.x - rightEye.x);
               const noseToLeft = Math.abs(nose.x - leftEye.x);
               const noseToRight = Math.abs(nose.x - rightEye.x);
               
-              /* If nose is too close to one eye (< 25% of eye-to-eye distance), head is turned */
-              if (noseToLeft < eyeDist * 0.25 || noseToRight < eyeDist * 0.25) {
+              /* Nose asymmetry ratio: how off-center is the nose between the eyes?
+                 Perfect center = 0.5, looking left/right shifts this toward 0 or 1 */
+              const noseRatio = noseToRight / (noseToLeft + noseToRight);
+              
+              /* Strong turn: nose very close to one eye */
+              if (noseToLeft < eyeDist * 0.3 || noseToRight < eyeDist * 0.3) {
                 isHeadTurned = true;
+                headTurnSeverity = 2;
+              }
+              /* Mild turn: nose noticeably off-center (ratio < 0.35 or > 0.65) */
+              else if (noseRatio < 0.35 || noseRatio > 0.65) {
+                isHeadTurned = true;
+                headTurnSeverity = 1;
+              }
+              
+              /* Ear visibility check: if one ear is much closer to face center than the other,
+                 the head is turned away from screen */
+              if (!isHeadTurned && rightEar && leftEar) {
+                const earDist = Math.abs(leftEar.x - rightEar.x);
+                /* When head faces camera, ear distance is roughly 1.5-2x eye distance.
+                   When turned, it compresses significantly */
+                if (earDist < eyeDist * 0.9) {
+                  isHeadTurned = true;
+                  headTurnSeverity = 1;
+                }
               }
             }
           }
@@ -129,7 +154,7 @@ export function useFaceProctoring(enabled = true) {
 
           if (isHeadTurned) {
              direction = 'side';
-          } else if (centerX < 0.3 || centerX > 0.7) {
+          } else if (centerX < 0.35 || centerX > 0.65) {
              direction = 'side';
           } else if (centerY < 0.2) {
              direction = 'up';
@@ -148,10 +173,12 @@ export function useFaceProctoring(enabled = true) {
 
             const elapsed = (Date.now() - gazeAwayStart.current) / 1000;
             
-            /* Apply specific threshold based on direction */
+            /* Apply specific threshold based on direction and severity */
             let threshold = LIMIT_SIDE_SECS;
             if (direction === 'up') threshold = LIMIT_UP_SECS;
             if (direction === 'down') threshold = LIMIT_DOWN_SECS;
+            /* Strong head turns get flagged faster */
+            if (headTurnSeverity === 2) threshold = Math.max(1.5, threshold * 0.5);
 
             if (elapsed >= threshold) {
               isLookingAway = true;

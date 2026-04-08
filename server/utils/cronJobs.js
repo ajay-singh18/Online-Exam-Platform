@@ -24,6 +24,20 @@ const startAutoSubmitCron = () => {
         const deadline = new Date(attempt.startedAt.getTime() + exam.durationMins * 60 * 1000);
 
         if (now >= deadline) {
+          /* Check if student already has a submitted attempt for this exam */
+          const alreadySubmitted = await Attempt.findOne({
+            examId: attempt.examId,
+            userId: attempt.userId,
+            submittedAt: { $ne: null }
+          });
+
+          if (alreadySubmitted) {
+            /* Student already submitted — delete this orphan attempt */
+            await Attempt.deleteOne({ _id: attempt._id });
+            console.log(`[CRON] Deleted orphan attempt ${attempt._id} for user ${attempt.userId} (already submitted)`);
+            continue;
+          }
+
           /* Time's up: auto-submit this attempt */
           const questions = await Question.find({ _id: { $in: exam.questions } });
 
