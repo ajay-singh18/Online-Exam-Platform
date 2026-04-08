@@ -396,6 +396,9 @@ const getMissedStudents = async (req, res, next) => {
     const submittedAttempts = await Attempt.find({ examId, submittedAt: { $ne: null } }).select('userId').lean();
     const submittedIds = new Set(submittedAttempts.map(a => a.userId.toString()));
 
+    /* Finalize enrolledIds: (Planned Enrolled) UNION (Actually Submitted) */
+    enrolledIds = [...new Set([...enrolledIds, ...Array.from(submittedIds)])];
+
     /* Missed = enrolled but not submitted */
     const missedIds = enrolledIds.filter(id => !submittedIds.has(id));
 
