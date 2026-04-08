@@ -16,14 +16,30 @@ export default function LoadingSpinner({
       minHeight: inline ? 'auto' : '40vh', 
       gap: '0.75rem',
     }}>
-      <div style={{
-        width: size, 
-        height: size, 
-        borderRadius: '50%',
-        border: '3px solid var(--surface-container-high)',
-        borderTopColor: 'var(--on-primary-container)',
-        animation: 'spin 0.8s linear infinite',
-      }} />
+      <svg 
+        style={{
+          width: size, 
+          height: size, 
+          animation: 'spin 0.8s linear infinite',
+        }}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle 
+          cx="12" 
+          cy="12" 
+          r="10" 
+          stroke="var(--surface-container-high)" 
+          strokeWidth="3" 
+        />
+        <path 
+          d="M12 2C6.47715 2 2 6.47715 2 12" 
+          stroke="var(--on-primary-container)" 
+          strokeWidth="3" 
+          strokeLinecap="round" 
+        />
+      </svg>
       {!inline && message && (
         <p style={{ fontWeight: 600, color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{message}</p>
       )}

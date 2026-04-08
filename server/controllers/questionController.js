@@ -191,9 +191,88 @@ const getSubjects = async (req, res, next) => {
   }
 };
 
+const extractQuestionsFromTemplate = (text) => {
+  const questions = [];
+  // Split text by lines that start with "Number. "
+  // It handles typical spacing and newlines. We use lookahead so we keep the delimiters.
+  const blocks = text.split(/(?=(?:^|\n)\s*\d+\.\s+)/);
+
+  blocks.forEach((block) => {
+    // Check if the block has an "Answer: " line
+    const answerMatch = block.match(/Answer:\s*(.+)/i);
+    if (!answerMatch) return;
+
+    const rawAnswer = answerMatch[1].trim();
+
+    // The question text is everything before options or "Answer:"
+    let questionText = block.substring(0, answerMatch.index).trim();
+    // Remove the leading "1. "
+    questionText = questionText.replace(/^\s*\d+\.\s*/, '').trim();
+
+    // Check for A., B., C., D. structure
+    const optionsMatch = questionText.match(/A\.\s*([\s\S]+?)\s*B\.\s*([\s\S]+?)\s*(?:C\.\s*([\s\S]+?))?\s*(?:D\.\s*([\s\S]+?))?$/i);
+
+    if (optionsMatch) {
+      // It's MCQ or MSQ
+      questionText = questionText.substring(0, optionsMatch.index).trim();
+      const oA = optionsMatch[1]?.trim() || '';
+      const oB = optionsMatch[2]?.trim() || '';
+      const oC = optionsMatch[3]?.trim() || '';
+      const oD = optionsMatch[4]?.trim() || '';
+
+      const correctAnsStr = rawAnswer.toUpperCase();
+      const isMSQ = correctAnsStr.includes(',');
+
+      const options = [];
+      if (oA) options.push({ text: oA, isCorrect: correctAnsStr.includes('A') });
+      if (oB) options.push({ text: oB, isCorrect: correctAnsStr.includes('B') });
+      if (oC) options.push({ text: oC, isCorrect: correctAnsStr.includes('C') });
+      if (oD) options.push({ text: oD, isCorrect: correctAnsStr.includes('D') });
+
+      questions.push({
+        text: questionText,
+        type: isMSQ ? 'msq' : 'mcq',
+        options,
+        subject: 'General',
+        topic: 'General',
+        difficulty: 'medium'
+      });
+    } else {
+      // No options -> True/False or Fill-in-the-blank
+      const isTF = rawAnswer.toLowerCase() === 'true' || rawAnswer.toLowerCase() === 'false';
+      
+      if (isTF) {
+        questions.push({
+          text: questionText,
+          type: 'truefalse',
+          options: [
+            { text: 'True', isCorrect: rawAnswer.toLowerCase() === 'true' },
+            { text: 'False', isCorrect: rawAnswer.toLowerCase() === 'false' }
+          ],
+          subject: 'General',
+          topic: 'General',
+          difficulty: 'medium'
+        });
+      } else {
+        // Fill in the blank
+        questions.push({
+          text: questionText,
+          type: 'fillblank',
+          options: [{ text: rawAnswer, isCorrect: true }],
+          subject: 'General',
+          topic: 'General',
+          difficulty: 'medium'
+        });
+      }
+    }
+  });
+
+  return questions;
+};
+
 /**
  * POST /api/questions/import/ai
- * Extract questions from PDF or JSON using Gemini.
+ * Extract questions from PDF or JSON using Gemini or Template Regex.
  */
 const extractFromAI = async (req, res, next) => {
   try {
@@ -201,6 +280,7 @@ const extractFromAI = async (req, res, next) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
+    const { mode } = req.body;
     let text = '';
     const mimetype = req.file.mimetype;
 
@@ -215,7 +295,17 @@ const extractFromAI = async (req, res, next) => {
       return res.status(400).json({ message: 'File contains too little text to extract questions.' });
     }
 
-    const questions = await extractQuestionsFromText(text);
+    let questions = [];
+    if (mode === 'template') {
+      questions = extractQuestionsFromTemplate(text);
+      if (questions.length === 0) {
+        return res.status(400).json({ 
+          message: 'Zero questions found matching the standard template. Please verify the PDF format or use AI mode.' 
+        });
+      }
+    } else {
+      questions = await extractQuestionsFromText(text);
+    }
 
     res.json({
       success: true,
@@ -224,10 +314,10 @@ const extractFromAI = async (req, res, next) => {
     });
 
   } catch (error) {
-    console.error('[AI_IMPORT] Error:', error);
+    console.error('[IMPORT] Error:', error);
     res.status(500).json({ 
       success: false, 
-      message: error.message || 'AI extraction failed. Make sure the PDF has selectable text.' 
+      message: error.message || 'Extraction failed. Make sure the PDF has selectable text.' 
     });
   }
 };

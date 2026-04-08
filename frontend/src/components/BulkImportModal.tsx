@@ -15,7 +15,8 @@ export default function BulkImportModal({ onClose, onSuccess }: BulkImportModalP
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [importType, setImportType] = useState<'csv' | 'ai'>('csv');
+  const [importType, setImportType] = useState<'csv' | 'ai' | 'template'>('csv');
+  const [pdfMode, setPdfMode] = useState<'template' | 'ai'>('template');
   const [batchSubject, setBatchSubject] = useState('');
   const [previousSubjects, setPreviousSubjects] = useState<string[]>([]);
 
@@ -41,15 +42,40 @@ export default function BulkImportModal({ onClose, onSuccess }: BulkImportModalP
               Object.keys(row).forEach(k => { r[k.toLowerCase().trim()] = row[k]; });
               
               const correctStr = String(r.correct || r.answer || '').toUpperCase();
+              const rawAnswerStr = String(r.correct || r.answer || '').trim();
+              
+              const oA = r.optiona || r.a || r.option_a || '';
+              const oB = r.optionb || r.b || r.option_b || '';
+              const oC = r.optionc || r.c || r.option_c || '';
+              const oD = r.optiond || r.d || r.option_d || '';
+
+              const hasOptions = !!(oA || oB || oC || oD);
+
+              let inferredType = 'mcq';
+              let finalOptions: any[] = [];
+
+              if (hasOptions) {
+                 inferredType = correctStr.includes(',') ? 'msq' : 'mcq';
+                 if (oA) finalOptions.push({ text: oA, isCorrect: correctStr.includes('A') || correctStr === 'A' });
+                 if (oB) finalOptions.push({ text: oB, isCorrect: correctStr.includes('B') || correctStr === 'B' });
+                 if (oC) finalOptions.push({ text: oC, isCorrect: correctStr.includes('C') || correctStr === 'C' });
+                 if (oD) finalOptions.push({ text: oD, isCorrect: correctStr.includes('D') || correctStr === 'D' });
+              } else {
+                 const isTF = rawAnswerStr.toLowerCase() === 'true' || rawAnswerStr.toLowerCase() === 'false';
+                 if (isTF) {
+                    inferredType = 'truefalse';
+                    finalOptions.push({ text: 'True', isCorrect: rawAnswerStr.toLowerCase() === 'true' });
+                    finalOptions.push({ text: 'False', isCorrect: rawAnswerStr.toLowerCase() === 'false' });
+                 } else {
+                    inferredType = 'fillblank';
+                    finalOptions.push({ text: rawAnswerStr, isCorrect: true });
+                 }
+              }
+
               return {
                 text: r.question || r.text || '',
-                type: (r.type || 'mcq').toLowerCase(),
-                options: [
-                  { text: r.optiona || r.a || r.option_a || '', isCorrect: correctStr.includes('A') || correctStr === 'A' },
-                  { text: r.optionb || r.b || r.option_b || '', isCorrect: correctStr.includes('B') || correctStr === 'B' },
-                  { text: r.optionc || r.c || r.option_c || '', isCorrect: correctStr.includes('C') || correctStr === 'C' },
-                  { text: r.optiond || r.d || r.option_d || '', isCorrect: correctStr.includes('D') || correctStr === 'D' },
-                ].filter(o => o.text),
+                type: (r.type || inferredType).toLowerCase(),
+                options: finalOptions,
                 subject: r.subject || 'General',
                 topic: r.topic || 'General',
                 difficulty: (r.difficulty || 'medium').toLowerCase(),
@@ -65,12 +91,13 @@ export default function BulkImportModal({ onClose, onSuccess }: BulkImportModalP
           }
         });
       } else if (file.type === 'application/pdf') {
-        setImportType('ai');
+        setImportType(pdfMode);
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('mode', pdfMode);
         const { data } = await importFromAI(formData);
         setQuestions(data.questions);
-        addToast(data.message || 'AI extraction complete!', 'success');
+        addToast(data.message || 'Extraction complete!', 'success');
       } else {
         addToast('Unsupported file type. Use CSV or PDF.', 'error');
       }
@@ -164,7 +191,18 @@ export default function BulkImportModal({ onClose, onSuccess }: BulkImportModalP
                     cloud_upload
                   </span>
                   <p style={{ fontWeight: 700, fontSize: '1.125rem' }}>Click or drag a file to start</p>
-                  <p style={{ color: 'var(--secondary)', marginTop: '0.5rem' }}>Supports .csv (Table) or .pdf (AI Extraction)</p>
+                  
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', margin: '1.5rem 0' }} onClick={e => e.stopPropagation()}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: pdfMode === 'template' ? 'var(--primary-container)' : 'var(--surface-container)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)' }}>
+                      <input type="radio" name="pdfMode" value="template" checked={pdfMode === 'template'} onChange={() => setPdfMode('template')} style={{ cursor: 'pointer' }} />
+                      <span style={{ fontSize: '0.875rem', fontWeight: pdfMode === 'template' ? 700 : 500, color: pdfMode === 'template' ? 'var(--on-primary-container)' : 'inherit' }}>PDF Strict Template (Fast & Free)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: pdfMode === 'ai' ? 'var(--tertiary-container)' : 'var(--surface-container)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)' }}>
+                      <input type="radio" name="pdfMode" value="ai" checked={pdfMode === 'ai'} onChange={() => setPdfMode('ai')} style={{ cursor: 'pointer' }} />
+                      <span style={{ fontSize: '0.875rem', fontWeight: pdfMode === 'ai' ? 700 : 500, color: pdfMode === 'ai' ? 'var(--on-tertiary-container)' : 'inherit' }}>PDF Smart AI Extraction</span>
+                    </label>
+                  </div>
+                  <p style={{ color: 'var(--secondary)', marginTop: '0.5rem' }}>Supports .csv (Table) or .pdf</p>
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
                     <div style={{ textAlign: 'left', background: 'var(--surface-container-low)', padding: '1rem', borderRadius: 'var(--radius-lg)', fontSize: '0.75rem' }}>
                       <p style={{ fontWeight: 800, marginBottom: '0.25rem' }}>CSV Columns Required:</p>
@@ -185,7 +223,7 @@ export default function BulkImportModal({ onClose, onSuccess }: BulkImportModalP
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span className="badge-info" style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', fontWeight: 700 }}>
-                  {questions.length} Questions {importType === 'ai' ? 'Extracted by AI' : 'Parsed from CSV'}
+                  {questions.length} Questions {importType === 'ai' ? 'Extracted by AI' : importType === 'template' ? 'Extracted by Template' : 'Parsed from CSV'}
                 </span>
                 <button className="btn-ghost" onClick={() => { setQuestions([]); setBatchSubject(''); }} style={{ color: 'var(--error)' }}>
                   Clear & Restart
