@@ -20,6 +20,7 @@ const instituteRoutes = require('./routes/institutes');
 const paymentRoutes = require('./routes/payments');
 const documentRoutes = require('./routes/documents');
 const batchRoutes = require('./routes/batches');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -66,6 +67,7 @@ app.use('/api/institutes', instituteRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/batches', batchRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 /* Health check */
 app.get('/api/health', (_req, res) => {
@@ -78,13 +80,19 @@ app.use(errorHandler);
 /* === Start Server === */
 const PORT = process.env.PORT || 5000;
 
+const http = require('http');
+const { initSocket } = require('./utils/socket');
+
 const start = async () => {
   try {
     await connectDB();
     configureCloudinary();
     startAutoSubmitCron();
 
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    initSocket(server);
+
+    server.listen(PORT, () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`📡 API: http://localhost:${PORT}/api`);
       console.log(`❤️  Health: http://localhost:${PORT}/api/health\n`);

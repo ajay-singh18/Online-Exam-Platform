@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { useToastStore } from '../store/toastStore';
+import NotificationBell from './NotificationBell';
 
 interface TopHeaderProps {
   readonly title?: string;
@@ -9,7 +9,6 @@ interface TopHeaderProps {
 
 export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }: TopHeaderProps) {
   const user = useAuthStore((s: any) => s.user);
-  const addToast = useToastStore((s: any) => s.addToast);
   const navigate = useNavigate();
 
   const initials = user?.name
@@ -20,10 +19,6 @@ export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }
     if (!user) return;
     const baseRoute = user.role.toLowerCase() === 'superadmin' ? '/superadmin' : `/${user.role}`;
     navigate(`${baseRoute}/settings`);
-  };
-
-  const handleNotifications = () => {
-    addToast('You have no new notifications.', 'info');
   };
 
   return (
@@ -47,15 +42,8 @@ export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button 
-            onClick={handleNotifications}
-            style={{ padding: '0.5rem', color: '#64748b', background: 'none', border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'background 0.15s' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-          >
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <NotificationBell />
           <button 
             onClick={goToSettings}
             style={{ padding: '0.5rem', color: '#64748b', background: 'none', border: 'none', borderRadius: '50%', cursor: 'pointer', transition: 'background 0.15s' }}

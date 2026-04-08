@@ -43,6 +43,15 @@ const startAttempt = async (req, res, next) => {
       return res.status(400).json({ message: 'Exam window has ended' });
     }
 
+    /* Check if already submitted */
+    const alreadySubmitted = await Attempt.findOne({ examId, userId, submittedAt: { $ne: null } });
+    if (alreadySubmitted) {
+      return res.status(400).json({ 
+        message: 'You have already submitted this exam',
+        submittedAt: alreadySubmitted.submittedAt
+      });
+    }
+
     /* Check for existing unsubmitted attempt */
     const existing = await Attempt.findOne({ examId, userId, submittedAt: null });
     if (existing) {
@@ -240,6 +249,43 @@ const submitAttempt = async (req, res, next) => {
 
     await attempt.save();
 
+    /* Create notification for admins */
+    try {
+      const Notification = require('../models/Notification');
+      const User = require('../models/User');
+      const { getIo } = require('../utils/socket');
+
+      // 1. Fetch all admins for this institute
+      const admins = await User.find({ 
+        instituteId: exam.instituteId, 
+        role: { $in: ['admin', 'superAdmin'] } 
+      });
+
+      const notificationData = admins.map(admin => ({
+        recipient: admin._id,
+        actor: req.user._id,
+        examId: exam._id,
+        message: `${req.user.name} submitted their attempt for "${exam.title}"`,
+        instituteId: exam.instituteId
+      }));
+
+      if (notificationData.length > 0) {
+        await Notification.insertMany(notificationData);
+        
+        // 2. Broadcast via socket
+        const io = getIo();
+        io.to(exam.instituteId.toString()).emit('new_notification', {
+          message: `${req.user.name} submitted "${exam.title}"`,
+          studentName: req.user.name,
+          examTitle: exam.title,
+          attemptId: attempt._id
+        });
+      }
+    } catch (notifErr) {
+      console.error('Notification Error:', notifErr);
+      // Don't fail the submission if notification fails
+    }
+
     res.json({
       success: true,
       result: {
@@ -280,7 +326,16 @@ const getExamAttempts = async (req, res, next) => {
   try {
     const attempts = await Attempt.find({ examId: req.params.examId })
       .populate('userId', 'name email')
-      .sort({ submittedAt: -1 });
+      .sort({ submittedAt: -1 })
+      .lean();
+
+    const Batch = require('../models/Batch');
+    for (let a of attempts) {
+      if (a.userId && a.userId._id) {
+        const batches = await Batch.find({ students: a.userId._id }).select('name').lean();
+        a.userId.batchNames = batches.map(b => b.name).join(', ');
+      }
+    }
 
     res.json({ success: true, attempts });
   } catch (error) {

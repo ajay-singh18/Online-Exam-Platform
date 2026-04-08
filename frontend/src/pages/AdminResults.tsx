@@ -78,6 +78,7 @@ export default function AdminResults() {
               <tr>
                 <th>Student</th>
                 <th>Email</th>
+                <th>Batch</th>
                 <th style={{ textAlign: 'center' }}>Score</th>
                 <th style={{ textAlign: 'center' }}>Percentage</th>
                 <th style={{ textAlign: 'center' }}>Status</th>
@@ -90,6 +91,7 @@ export default function AdminResults() {
                 <tr key={a._id}>
                   <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{a.userId?.name || '—'}</td>
                   <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{a.userId?.email || '—'}</td>
+                  <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{a.userId?.batchNames || '—'}</td>
                   <td style={{ textAlign: 'center', fontWeight: 900, color: 'var(--primary-container)' }}>{a.score ?? '—'}/{a.totalMarks ?? '—'}</td>
                   <td style={{ textAlign: 'center', fontWeight: 700 }}>{a.percentage ?? 0}%</td>
                   <td style={{ textAlign: 'center' }}>
@@ -102,7 +104,7 @@ export default function AdminResults() {
                       <span style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>0</span>
                     )}
                   </td>
-                  <td style={{ fontSize: '0.875rem', color: 'var(--on-secondary-container)' }}>{a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : '—'}</td>
+                  <td style={{ fontSize: '0.875rem', color: 'var(--on-secondary-container)' }}>{a.submittedAt ? new Date(a.submittedAt).toLocaleString() : '—'}</td>
                 </tr>
               ))}
             </tbody>

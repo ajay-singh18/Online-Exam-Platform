@@ -84,7 +84,7 @@ export default function ExamResultsAdmin() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{a.userId?.name || 'Unknown'}</p>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--on-secondary-container)' }}>{a.userId?.email || ''}</p>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--on-secondary-container)' }}>{a.userId?.email || ''} {a.userId?.batchNames ? `• ${a.userId.batchNames}` : ''}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                     <div style={{ textAlign: 'right' }}>
