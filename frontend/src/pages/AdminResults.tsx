@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getExams } from '../api/examApi';
 import { getExamAttempts, getMissedStudents } from '../api/attemptApi';
@@ -27,44 +27,40 @@ export default function AdminResults() {
         const { data } = await getExams();
         const all = data.exams || data || [];
         setExams(all);
-        if (all.length > 0) setSelectedExamId(all[0]._id);
+        if (all.length > 0 && !selectedExamId) setSelectedExamId(all[0]._id);
       } catch { addToast('Failed to load exams', 'error'); }
       finally { setLoading(false); }
     };
     init();
+  }, [addToast, selectedExamId]);
+
+  const fetchData = useCallback(async (id: string) => {
+    setLoadingAttempts(true);
+    setLoadingMissed(true);
+    try {
+      const [attemptRes, missedRes] = await Promise.all([
+        getExamAttempts(id),
+        getMissedStudents(id)
+      ]);
+      setAttempts(attemptRes.data.attempts || attemptRes.data || []);
+      setMissedData(missedRes.data);
+    } catch { 
+      setAttempts([]);
+      setMissedData(null);
+    } finally { 
+      setLoadingAttempts(false);
+      setLoadingMissed(false);
+    }
   }, []);
 
   useEffect(() => {
     if (!selectedExamId) return;
     setShowMissed(false);
-    setMissedData(null);
-    const fetchAttempts = async () => {
-      setLoadingAttempts(true);
-      try {
-        const { data } = await getExamAttempts(selectedExamId);
-        setAttempts(data.attempts || data || []);
-      } catch { setAttempts([]); }
-      finally { setLoadingAttempts(false); }
-    };
-    fetchAttempts();
-  }, [selectedExamId]);
+    fetchData(selectedExamId);
+  }, [selectedExamId, fetchData]);
 
-  const handleShowMissed = async () => {
-    if (showMissed) {
-      setShowMissed(false);
-      return;
-    }
-    if (!selectedExamId) return;
-    setLoadingMissed(true);
-    try {
-      const { data } = await getMissedStudents(selectedExamId);
-      setMissedData(data);
-      setShowMissed(true);
-    } catch {
-      addToast('Failed to load missed students', 'error');
-    } finally {
-      setLoadingMissed(false);
-    }
+  const toggleMissed = () => {
+    setShowMissed(!showMissed);
   };
 
   if (loading) return <LoadingSpinner message="Loading results..." />;
@@ -73,6 +69,8 @@ export default function AdminResults() {
     !search || a.userId?.name?.toLowerCase().includes(search.toLowerCase()) || a.userId?.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const missedCount = missedData?.missed?.length ?? 0;
+
   return (
     <div style={{ padding: '2rem', maxWidth: '72rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -80,21 +78,10 @@ export default function AdminResults() {
           <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--primary-container)' }}>Student Results</h2>
           <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500 }}>Browse and search student submissions</p>
         </div>
-        <button
-          className="btn-secondary"
-          onClick={handleShowMissed}
-          disabled={loadingMissed || !selectedExamId}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>
-            {showMissed ? 'visibility_off' : 'person_off'}
-          </span>
-          {loadingMissed ? 'Loading...' : showMissed ? 'Hide Missed' : 'Missed Students'}
-        </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Filters & Action */}
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <select className="ghost-input" value={selectedExamId} onChange={(e) => setSelectedExamId(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', width: 'auto', minWidth: '14rem', paddingLeft: '1rem' }}>
           {exams.map((e: any) => <option key={e._id} value={e._id}>{e.title}</option>)}
         </select>
@@ -102,6 +89,40 @@ export default function AdminResults() {
           <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>search</span>
           <input className="ghost-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by student name or email..." style={{ borderRadius: 'var(--radius-sm)' }} />
         </div>
+        <button
+          className={showMissed ? "btn-primary" : "btn-secondary"}
+          onClick={toggleMissed}
+          disabled={loadingMissed || !selectedExamId}
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            height: '42px', 
+            whiteSpace: 'nowrap',
+            borderColor: missedCount > 0 ? 'var(--error)' : undefined,
+            color: (missedCount > 0 && !showMissed) ? 'var(--error)' : undefined
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
+            {showMissed ? 'visibility_off' : 'person_off'}
+          </span>
+          {loadingMissed ? '...' : (
+            <>
+              {showMissed ? 'Hide Missed' : 'Missed'}
+              <span style={{ 
+                background: showMissed ? 'rgba(255,255,255,0.2)' : 'var(--error-container)', 
+                color: showMissed ? 'white' : 'var(--error)',
+                padding: '0.125rem 0.5rem',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 900,
+                marginLeft: '0.25rem'
+              }}>
+                {missedCount}
+              </span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Missed Students Panel */}
@@ -127,26 +148,28 @@ export default function AdminResults() {
               <p style={{ fontWeight: 600 }}>All enrolled students have submitted! 🎉</p>
             </div>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Student</th>
-                  <th>Email</th>
-                  <th>Batch</th>
-                </tr>
-              </thead>
-              <tbody>
-                {missedData.missed.map((s: any, i: number) => (
-                  <tr key={s._id}>
-                    <td style={{ color: 'var(--on-secondary-container)', fontWeight: 600 }}>{i + 1}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{s.name}</td>
-                    <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.email}</td>
-                    <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.batchNames || '—'}</td>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Email</th>
+                    <th>Batch</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {missedData.missed.map((s: any, i: number) => (
+                    <tr key={s._id}>
+                      <td style={{ color: 'var(--on-secondary-container)', fontWeight: 600 }}>{i + 1}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{s.name}</td>
+                      <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.email}</td>
+                      <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{s.batchNames || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
