@@ -484,6 +484,103 @@ const getAttemptResult = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/attempts/report-cards
+ * Admin: all students in institute with aggregated exam performance.
+ */
+const getReportCards = async (req, res, next) => {
+  try {
+    const User = require('../models/User');
+    const instituteId = req.user.instituteId;
+
+    /* Get all students in the institute */
+    const students = await User.find({ instituteId, role: 'student' })
+      .select('name email')
+      .sort({ name: 1 })
+      .lean();
+
+    /* Get all batches for this institute */
+    const batches = await Batch.find({ instituteId }).select('name students').lean();
+
+    /* Build batchMap: studentId → [batchName, ...] */
+    const batchMap = {};
+    for (const batch of batches) {
+      for (const sid of batch.students) {
+        const key = sid.toString();
+        if (!batchMap[key]) batchMap[key] = [];
+        batchMap[key].push(batch.name);
+      }
+    }
+
+    /* Get all exams for this institute */
+    const exams = await Exam.find({ instituteId }).select('title passMark').sort({ createdAt: -1 }).lean();
+    const examMap = {};
+    for (const ex of exams) { examMap[ex._id.toString()] = ex; }
+
+    /* Get all submitted attempts for this institute's exams */
+    const examIds = exams.map(e => e._id);
+    const allAttempts = await Attempt.find({ examId: { $in: examIds }, submittedAt: { $ne: null } })
+      .select('userId examId score totalMarks percentage passed violations submittedAt')
+      .sort({ submittedAt: -1 })
+      .lean();
+
+    /* Group attempts by student, keeping best per exam */
+    const studentAttempts = {};
+    for (const a of allAttempts) {
+      const uid = a.userId.toString();
+      if (!studentAttempts[uid]) studentAttempts[uid] = {};
+      const eid = a.examId.toString();
+      const existing = studentAttempts[uid][eid];
+      if (!existing || (a.percentage || 0) > (existing.percentage || 0)) {
+        studentAttempts[uid][eid] = a;
+      }
+    }
+
+    /* Build report cards */
+    const reportCards = students.map(student => {
+      const sid = student._id.toString();
+      const attemptsByExam = studentAttempts[sid] || {};
+      const examResults = Object.values(attemptsByExam);
+
+      const totalExams = examResults.length;
+      const totalPassed = examResults.filter(a => a.passed).length;
+      const avgPercentage = totalExams > 0
+        ? Math.round(examResults.reduce((sum, a) => sum + (a.percentage || 0), 0) / totalExams)
+        : 0;
+      const totalViolations = examResults.reduce((sum, a) => sum + (a.violations?.length || 0), 0);
+
+      return {
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        batches: batchMap[sid] || [],
+        totalExams,
+        totalPassed,
+        totalFailed: totalExams - totalPassed,
+        avgPercentage,
+        totalViolations,
+        exams: examResults.map(a => ({
+          examId: a.examId,
+          examTitle: examMap[a.examId.toString()]?.title || 'Unknown',
+          score: a.score,
+          totalMarks: a.totalMarks,
+          percentage: a.percentage,
+          passed: a.passed,
+          violations: a.violations?.length || 0,
+          submittedAt: a.submittedAt,
+        })),
+      };
+    });
+
+    /* Return unique batch names for the filter dropdown */
+    const batchNames = [...new Set(batches.map(b => b.name))].sort();
+
+    res.json({ success: true, reportCards, batchNames });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   startAttempt,
   saveAttempt,
@@ -492,5 +589,6 @@ module.exports = {
   getExamAttempts,
   getMissedStudents,
   getAttemptResult,
+  getReportCards,
 };
 

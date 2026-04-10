@@ -368,6 +368,7 @@ export const sidebarAdminLinks = [
   { label: "Batches", icon: "groups", path: "/admin/batches" },
   { label: "Analytics", icon: "analytics", path: "/admin/analytics" },
   { label: "Results", icon: "fact_check", path: "/admin/results" },
+  { label: "Report Cards", icon: "school", path: "/admin/report-cards" },
   { label: "Settings", icon: "settings", path: "/admin/settings" },
   { label: "Help", icon: "help", path: "/admin/help" },
 ];

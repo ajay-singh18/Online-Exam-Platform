@@ -21,6 +21,7 @@ import BatchManagement from './pages/BatchManagement';
 import ExamResultsAdmin from './pages/ExamResultsAdmin';
 import ExamAnalytics from './pages/ExamAnalytics';
 import AdminResults from './pages/AdminResults';
+import ReportCards from './pages/ReportCards';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import InstituteManagement from './pages/InstituteManagement';
 import StudentLayout from './layouts/StudentLayout';
@@ -76,6 +77,7 @@ function App() {
             <Route path="analytics/:examId" element={<ExamAnalytics />} />
             <Route path="batches" element={<BatchManagement />} />
             <Route path="results" element={<AdminResults />} />
+            <Route path="report-cards" element={<ReportCards />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
           </Route>

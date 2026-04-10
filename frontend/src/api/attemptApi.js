@@ -7,3 +7,4 @@ export const getMyAttempts = () => api.get('/attempts/my');
 export const getExamAttempts = (examId) => api.get(`/attempts/exam/${examId}`);
 export const getMissedStudents = (examId) => api.get(`/attempts/exam/${examId}/missed`);
 export const getAttemptResult = (attemptId) => api.get(`/attempts/${attemptId}/result`);
+export const getReportCards = () => api.get('/attempts/report-cards');
