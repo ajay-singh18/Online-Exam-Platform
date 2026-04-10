@@ -22,6 +22,7 @@ import ExamResultsAdmin from './pages/ExamResultsAdmin';
 import ExamAnalytics from './pages/ExamAnalytics';
 import AdminResults from './pages/AdminResults';
 import ReportCards from './pages/ReportCards';
+import Pricing from './pages/Pricing';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import InstituteManagement from './pages/InstituteManagement';
 import StudentLayout from './layouts/StudentLayout';
@@ -78,6 +79,7 @@ function App() {
             <Route path="batches" element={<BatchManagement />} />
             <Route path="results" element={<AdminResults />} />
             <Route path="report-cards" element={<ReportCards />} />
+            <Route path="pricing" element={<Pricing />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Help />} />
           </Route>

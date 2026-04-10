@@ -1,4 +1,56 @@
 const Institute = require('../models/Institute');
+const User = require('../models/User');
+
+/* ── Plan config ────────────────────────────────── */
+const PLANS = {
+  free:    { price: 0,      studentLimit: 50,   adminLimit: 2   },
+  starter: { price: 49900,  studentLimit: 500,  adminLimit: 5   }, // ₹499
+  pro:     { price: 99900,  studentLimit: 2000, adminLimit: 20  }, // ₹999
+};
+
+/**
+ * GET /api/payments/plans
+ * Return available plans (public-ish, but auth is on router).
+ */
+const getPlans = async (_req, res) => {
+  res.json({
+    success: true,
+    plans: Object.entries(PLANS).map(([key, v]) => ({
+      id: key,
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      price: v.price / 100,               // ₹ value
+      priceLabel: key === 'free' ? 'Free' : `₹${v.price / 100}/mo`,
+      studentLimit: v.studentLimit,
+      adminLimit: v.adminLimit,
+    })),
+  });
+};
+
+/**
+ * GET /api/payments/status
+ * Return the current institute's plan, usage, and limits.
+ */
+const getSubscriptionStatus = async (req, res, next) => {
+  try {
+    const institute = await Institute.findById(req.user.instituteId).lean();
+    if (!institute) return res.status(404).json({ message: 'Institute not found' });
+
+    const studentCount = await User.countDocuments({ instituteId: institute._id, role: 'student' });
+    const adminCount = await User.countDocuments({ instituteId: institute._id, role: 'admin' });
+
+    res.json({
+      success: true,
+      plan: institute.plan || 'free',
+      studentLimit: institute.studentLimit,
+      adminLimit: institute.adminLimit,
+      studentCount,
+      adminCount,
+      instituteName: institute.name,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * POST /api/payments/create-order
@@ -8,13 +60,7 @@ const createOrder = async (req, res, next) => {
   try {
     const { plan } = req.body;
 
-    /* Plan pricing (amounts in paise for INR) */
-    const planPricing = {
-      starter: 49900,   // ₹499
-      pro: 149900,       // ₹1499
-    };
-
-    if (!planPricing[plan]) {
+    if (!PLANS[plan] || plan === 'free') {
       return res.status(400).json({ message: 'Invalid plan selected' });
     }
 
@@ -29,7 +75,7 @@ const createOrder = async (req, res, next) => {
     });
 
     const order = await razorpay.orders.create({
-      amount: planPricing[plan],
+      amount: PLANS[plan].price,
       currency: 'INR',
       receipt: `plan_${plan}_${Date.now()}`,
       notes: {
@@ -74,18 +120,16 @@ const verifyPayment = async (req, res, next) => {
       return res.status(400).json({ message: 'Payment verification failed' });
     }
 
-    /* Upgrade institute plan */
-    const planLimits = {
-      starter: { studentLimit: 200, adminLimit: 5 },
-      pro: { studentLimit: 1000, adminLimit: 20 },
-    };
-
-    const limits = planLimits[plan] || {};
+    const limits = PLANS[plan];
+    if (!limits) {
+      return res.status(400).json({ message: 'Invalid plan' });
+    }
 
     await Institute.findByIdAndUpdate(req.user.instituteId, {
       plan,
+      studentLimit: limits.studentLimit,
+      adminLimit: limits.adminLimit,
       razorpaySubscriptionId: razorpay_payment_id,
-      ...limits,
     });
 
     res.json({
@@ -97,4 +141,121 @@ const verifyPayment = async (req, res, next) => {
   }
 };
 
-module.exports = { createOrder, verifyPayment };
+/* ── Team Management ──────────────────────────────── */
+
+/**
+ * GET /api/payments/team
+ * List all admins in the same institute.
+ */
+const getTeamMembers = async (req, res, next) => {
+  try {
+    const admins = await User.find({ instituteId: req.user.instituteId, role: 'admin' })
+      .select('name email createdAt')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const institute = await Institute.findById(req.user.instituteId).select('ownerEmail adminLimit plan').lean();
+
+    res.json({
+      success: true,
+      members: admins.map(a => ({
+        ...a,
+        isOwner: a.email === institute?.ownerEmail,
+      })),
+      adminLimit: institute?.adminLimit || 2,
+      plan: institute?.plan || 'free',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/payments/team/invite
+ * Invite a new admin to the institute.
+ */
+const inviteAdmin = async (req, res, next) => {
+  try {
+    const { email, name, password } = req.body;
+
+    if (!email || !name || !password) {
+      return res.status(400).json({ message: 'Name, email and password are required' });
+    }
+
+    /* Check ownership: only institute owner can invite */
+    const institute = await Institute.findById(req.user.instituteId).lean();
+    if (!institute) return res.status(404).json({ message: 'Institute not found' });
+
+    const caller = await User.findById(req.user._id).lean();
+    if (caller.email !== institute.ownerEmail) {
+      return res.status(403).json({ message: 'Only the institute owner can invite admins' });
+    }
+
+    /* Check admin limit */
+    const currentAdminCount = await User.countDocuments({ instituteId: institute._id, role: 'admin' });
+    if (currentAdminCount >= institute.adminLimit) {
+      return res.status(403).json({
+        message: `Admin limit reached (${institute.adminLimit}). Upgrade your plan to add more admins.`,
+      });
+    }
+
+    /* Check if email already exists */
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing) {
+      return res.status(400).json({ message: 'This email is already registered' });
+    }
+
+    /* Create the admin user */
+    const admin = await User.create({
+      name,
+      email: email.toLowerCase().trim(),
+      passwordHash: password,
+      role: 'admin',
+      instituteId: institute._id,
+      isVerified: true,  // owner-invited admins are auto-verified
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Admin ${name} invited successfully`,
+      member: { _id: admin._id, name: admin.name, email: admin.email, isOwner: false },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * DELETE /api/payments/team/:userId
+ * Remove an admin from the institute.
+ */
+const removeAdmin = async (req, res, next) => {
+  try {
+    const institute = await Institute.findById(req.user.instituteId).lean();
+    if (!institute) return res.status(404).json({ message: 'Institute not found' });
+
+    const caller = await User.findById(req.user._id).lean();
+    if (caller.email !== institute.ownerEmail) {
+      return res.status(403).json({ message: 'Only the institute owner can remove admins' });
+    }
+
+    const target = await User.findById(req.params.userId);
+    if (!target) return res.status(404).json({ message: 'User not found' });
+
+    if (target.email === institute.ownerEmail) {
+      return res.status(400).json({ message: 'Cannot remove the institute owner' });
+    }
+
+    if (target.instituteId?.toString() !== institute._id.toString()) {
+      return res.status(400).json({ message: 'User does not belong to this institute' });
+    }
+
+    await User.findByIdAndDelete(req.params.userId);
+
+    res.json({ success: true, message: 'Admin removed' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getPlans, getSubscriptionStatus, createOrder, verifyPayment, getTeamMembers, inviteAdmin, removeAdmin };
