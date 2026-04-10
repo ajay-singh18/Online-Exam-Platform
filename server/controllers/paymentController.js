@@ -1,30 +1,7 @@
 const Institute = require('../models/Institute');
 const User = require('../models/User');
 
-/* ── Plan config ────────────────────────────────── */
-const PLANS = {
-  free:    { price: 0,      studentLimit: 50,   adminLimit: 2   },
-  starter: { price: 49900,  studentLimit: 500,  adminLimit: 5   }, // ₹499
-  pro:     { price: 99900,  studentLimit: 2000, adminLimit: 20  }, // ₹999
-};
-
-/**
- * GET /api/payments/plans
- * Return available plans (public-ish, but auth is on router).
- */
-const getPlans = async (_req, res) => {
-  res.json({
-    success: true,
-    plans: Object.entries(PLANS).map(([key, v]) => ({
-      id: key,
-      name: key.charAt(0).toUpperCase() + key.slice(1),
-      price: v.price / 100,               // ₹ value
-      priceLabel: key === 'free' ? 'Free' : `₹${v.price / 100}/mo`,
-      studentLimit: v.studentLimit,
-      adminLimit: v.adminLimit,
-    })),
-  });
-};
+const Plan = require('../models/Plan');
 
 /**
  * GET /api/payments/status
@@ -60,8 +37,10 @@ const createOrder = async (req, res, next) => {
   try {
     const { plan } = req.body;
 
-    if (!PLANS[plan] || plan === 'free') {
-      return res.status(400).json({ message: 'Invalid plan selected' });
+    const dbPlan = await Plan.findOne({ planId: plan, isActive: true });
+    
+    if (!dbPlan || plan === 'free') {
+      return res.status(400).json({ message: 'Invalid or inactive plan selected' });
     }
 
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -75,7 +54,8 @@ const createOrder = async (req, res, next) => {
     });
 
     const order = await razorpay.orders.create({
-      amount: PLANS[plan].price,
+      amount: (dbPlan.price * 100), // converting ₹ to paise
+
       currency: 'INR',
       receipt: `plan_${plan}_${Date.now()}`,
       notes: {
@@ -120,15 +100,15 @@ const verifyPayment = async (req, res, next) => {
       return res.status(400).json({ message: 'Payment verification failed' });
     }
 
-    const limits = PLANS[plan];
-    if (!limits) {
+    const dbPlan = await Plan.findOne({ planId: plan });
+    if (!dbPlan) {
       return res.status(400).json({ message: 'Invalid plan' });
     }
 
     await Institute.findByIdAndUpdate(req.user.instituteId, {
       plan,
-      studentLimit: limits.studentLimit,
-      adminLimit: limits.adminLimit,
+      studentLimit: dbPlan.studentLimit,
+      adminLimit: dbPlan.adminLimit,
       razorpaySubscriptionId: razorpay_payment_id,
     });
 
@@ -258,4 +238,4 @@ const removeAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = { getPlans, getSubscriptionStatus, createOrder, verifyPayment, getTeamMembers, inviteAdmin, removeAdmin };
+module.exports = { getSubscriptionStatus, createOrder, verifyPayment, getTeamMembers, inviteAdmin, removeAdmin };

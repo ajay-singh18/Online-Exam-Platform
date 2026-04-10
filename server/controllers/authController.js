@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const Institute = require('../models/Institute');
+const Plan = require('../models/Plan');
 const { sendVerificationEmail } = require('../utils/email');
 
 /* Generate JWT tokens */
@@ -32,9 +33,14 @@ const register = async (req, res, next) => {
 
     /* If registering as admin, create a new institute */
     if (role === 'admin' && instituteName) {
+      const freePlan = await Plan.findOne({ planId: 'free' });
+      
       const institute = await Institute.create({
         name: instituteName,
         ownerEmail: email,
+        studentLimit: freePlan?.studentLimit || 50,
+        adminLimit: freePlan?.adminLimit || 2,
+        plan: 'free',
       });
       userInstituteId = institute._id;
     }

@@ -1,6 +1,6 @@
 import api from './axios';
 
-export const getPlans = () => api.get('/payments/plans');
+// Plan info & billing
 export const getSubscriptionStatus = () => api.get('/payments/status');
 export const createOrder = (plan) => api.post('/payments/create-order', { plan });
 export const verifyPayment = (data) => api.post('/payments/verify', data);

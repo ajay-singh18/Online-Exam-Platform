@@ -370,12 +370,14 @@ export const sidebarAdminLinks = [
   { label: "Results", icon: "fact_check", path: "/admin/results" },
   { label: "Report Cards", icon: "school", path: "/admin/report-cards" },
   { label: "Settings", icon: "settings", path: "/admin/settings" },
+  { label: "Pricing & Billing", icon: "credit_card", path: "/admin/pricing" },
   { label: "Help", icon: "help", path: "/admin/help" },
 ];
 
 export const sidebarSuperAdminLinks = [
   { label: "Dashboard", icon: "dashboard", path: "/superadmin" },
   { label: "Institutes", icon: "business", path: "/superadmin/institutes" },
+  { label: "Subscriptions & Plans", icon: "workspace_premium", path: "/superadmin/plans" },
   { label: "Users", icon: "group", path: "/superadmin/users" },
   {
     label: "Platform Analytics",

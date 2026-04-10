@@ -15,16 +15,13 @@ const instituteSchema = new mongoose.Schema(
     },
     plan: {
       type: String,
-      enum: ['free', 'starter', 'pro'],
       default: 'free',
     },
     studentLimit: {
       type: Number,
-      default: 50,
     },
     adminLimit: {
       type: Number,
-      default: 2,
     },
     razorpaySubscriptionId: String,
   },

@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store/toastStore';
-import { getPlans, getSubscriptionStatus, createOrder, verifyPayment } from '../api/paymentApi';
+import { getSubscriptionStatus, createOrder, verifyPayment } from '../api/paymentApi';
+import { getActivePlans } from '../api/planApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 declare global { interface Window { Razorpay: any; } }
-
-const PLAN_FEATURES: Record<string, string[]> = {
-  free:    ['50 Students', '2 Admins', 'All Proctoring Features', 'Basic Analytics', 'Email Support'],
-  starter: ['500 Students', '5 Admins', 'All Proctoring Features', 'Advanced Analytics', 'Report Cards', 'Priority Support'],
-  pro:     ['2,000 Students', '20 Admins', 'All Proctoring Features', 'Full Analytics Suite', 'Report Cards', 'Team Management', 'Dedicated Support'],
-};
 
 const PLAN_COLORS: Record<string, string> = {
   free: '#64748b',
@@ -30,7 +25,7 @@ export default function Pricing() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [plansRes, statusRes] = await Promise.all([getPlans(), getSubscriptionStatus()]);
+        const [plansRes, statusRes] = await Promise.all([getActivePlans(), getSubscriptionStatus()]);
         setPlans(plansRes.data.plans || []);
         setCurrentPlan(statusRes.data.plan || 'free');
       } catch {
@@ -56,7 +51,6 @@ export default function Pricing() {
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free' || planId === currentPlan) return;
-
     setProcessing(planId);
     try {
       const scriptLoaded = await loadRazorpayScript();
@@ -128,15 +122,15 @@ export default function Pricing() {
       {/* Plan Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
         {plans.map((plan: any) => {
-          const isCurrent = plan.id === currentPlan;
-          const isDowngrade = plans.findIndex((p: any) => p.id === currentPlan) > plans.findIndex((p: any) => p.id === plan.id);
-          const color = PLAN_COLORS[plan.id] || '#3b82f6';
-          const features = PLAN_FEATURES[plan.id] || [];
-          const isPopular = plan.id === 'starter';
+          const isCurrent = plan.planId === currentPlan;
+          const isDowngrade = plans.findIndex((p: any) => p.planId === currentPlan) > plans.findIndex((p: any) => p.planId === plan.planId);
+          const color = plan.colorHint || PLAN_COLORS[plan.planId] || '#3b82f6';
+          const features = plan.features || [];
+          const isPopular = plan.isRecommended;
 
           return (
             <div
-              key={plan.id}
+              key={plan.planId}
               style={{
                 background: 'var(--surface-container-lowest)',
                 borderRadius: 'var(--radius-2xl)',
@@ -183,16 +177,16 @@ export default function Pricing() {
                     background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '1.25rem', color }}>
-                      {plan.id === 'free' ? 'token' : plan.id === 'starter' ? 'rocket_launch' : 'diamond'}
+                      {plan.planId === 'free' ? 'token' : plan.planId === 'starter' ? 'rocket_launch' : 'diamond'}
                     </span>
                   </div>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--on-surface)' }}>{plan.name}</h3>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                   <span style={{ fontSize: '2.5rem', fontWeight: 900, color }}>
-                    {plan.id === 'free' ? 'Free' : `₹${plan.price}`}
+                    {plan.price === 0 ? 'Free' : `₹${plan.price}`}
                   </span>
-                  {plan.id !== 'free' && (
+                  {plan.price !== 0 && (
                     <span style={{ color: 'var(--on-secondary-container)', fontWeight: 600 }}>/month</span>
                   )}
                 </div>
@@ -213,7 +207,7 @@ export default function Pricing() {
 
               {/* CTA */}
               <button
-                onClick={() => handleUpgrade(plan.id)}
+                onClick={() => handleUpgrade(plan.planId)}
                 disabled={isCurrent || isDowngrade || processing !== null}
                 style={{
                   width: '100%',
@@ -233,13 +227,13 @@ export default function Pricing() {
                   transition: 'transform 0.15s, opacity 0.15s',
                 }}
               >
-                {processing === plan.id
+                {processing === plan.planId
                   ? 'Processing...'
                   : isCurrent
                     ? 'Current Plan'
                     : isDowngrade
                       ? 'Downgrade N/A'
-                      : plan.id === 'free'
+                      : plan.price === 0
                         ? 'Get Started'
                         : 'Upgrade Now'}
               </button>

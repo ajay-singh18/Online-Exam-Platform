@@ -1,6 +1,5 @@
 const express = require('express');
 const {
-  getPlans,
   getSubscriptionStatus,
   createOrder,
   verifyPayment,
@@ -15,7 +14,6 @@ const router = express.Router();
 router.use(verifyToken);
 
 /* Plan info & billing */
-router.get('/plans', getPlans);
 router.get('/status', requireRole('admin'), getSubscriptionStatus);
 router.post('/create-order', requireRole('admin'), createOrder);
 router.post('/verify', requireRole('admin'), verifyPayment);

@@ -25,6 +25,7 @@ import ReportCards from './pages/ReportCards';
 import Pricing from './pages/Pricing';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import InstituteManagement from './pages/InstituteManagement';
+import PlanManagement from './pages/PlanManagement';
 import StudentLayout from './layouts/StudentLayout';
 import AdminLayout from './layouts/AdminLayout';
 import SuperAdminLayout from './layouts/SuperAdminLayout';
@@ -90,6 +91,7 @@ function App() {
           <Route element={<SuperAdminLayout />}>
             <Route index element={<SuperAdminDashboard />} />
             <Route path="institutes" element={<InstituteManagement />} />
+            <Route path="plans" element={<PlanManagement />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="analytics" element={<PlatformAnalytics />} />
             <Route path="settings" element={<Settings />} />

@@ -18,6 +18,7 @@ const attemptRoutes = require('./routes/attempts');
 const analyticsRoutes = require('./routes/analytics');
 const instituteRoutes = require('./routes/institutes');
 const paymentRoutes = require('./routes/payments');
+const planRoutes = require('./routes/plans');
 const documentRoutes = require('./routes/documents');
 const batchRoutes = require('./routes/batches');
 const notificationRoutes = require('./routes/notifications');
@@ -65,6 +66,7 @@ app.use('/api/attempts', attemptRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/institutes', instituteRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/plans', planRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -86,6 +88,9 @@ const { initSocket } = require('./utils/socket');
 const start = async () => {
   try {
     await connectDB();
+    const { seedPlans } = require('./utils/seedPlans');
+    await seedPlans();
+    
     configureCloudinary();
     startAutoSubmitCron();
 
