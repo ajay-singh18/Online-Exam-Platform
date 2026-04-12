@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getInstitutes } from '../api/instituteApi';
+import { getAllPlans } from '../api/planApi';
 import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -9,13 +10,15 @@ export default function SuperAdminDashboard() {
   const addToast = useToastStore((s: any) => s.addToast);
 
   const [institutes, setInstitutes] = useState<any[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data } = await getInstitutes();
-        setInstitutes(data.institutes || data || []);
+        const [instRes, planRes] = await Promise.all([getInstitutes(), getAllPlans()]);
+        setInstitutes(instRes.data.institutes || instRes.data || []);
+        setPlans(planRes.data.plans || []);
       } catch { addToast('Failed to load platform data', 'error'); }
       finally { setLoading(false); }
     };
@@ -25,11 +28,17 @@ export default function SuperAdminDashboard() {
   if (loading) return <LoadingSpinner message="Loading platform dashboard..." />;
 
   const totalInstitutes = institutes.length;
-  const planCounts = { free: 0, starter: 0, pro: 0 };
+
+  // Build dynamic plan counts
+  const planCounts: Record<string, number> = {};
+  plans.forEach((p: any) => { planCounts[p.planId] = 0; });
   institutes.forEach((inst: any) => {
-    const plan = (inst.plan || 'free') as keyof typeof planCounts;
+    const plan = inst.plan || 'free';
     if (planCounts[plan] !== undefined) planCounts[plan]++;
+    else planCounts[plan] = 1;
   });
+
+  const PLAN_ICONS: Record<string, string> = { free: 'stars', starter: 'rocket_launch', pro: 'workspace_premium' };
 
   return (
     <div style={{ padding: '2rem', maxWidth: '80rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -44,18 +53,21 @@ export default function SuperAdminDashboard() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
-        {[
-          { label: 'Total Institutes', value: totalInstitutes, icon: 'business', color: 'var(--primary-container)' },
-          { label: 'Free Plan', value: planCounts.free, icon: 'stars', color: 'var(--on-secondary-container)' },
-          { label: 'Starter Plan', value: planCounts.starter, icon: 'rocket_launch', color: '#F59E0B' },
-          { label: 'Pro Plan', value: planCounts.pro, icon: 'workspace_premium', color: 'var(--on-tertiary-container)' },
-        ].map(stat => (
-          <div key={stat.label} className="stat-card">
+        <div className="stat-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Total Institutes</span>
+            <span className="material-symbols-outlined" style={{ color: 'var(--primary-container)' }}>business</span>
+          </div>
+          <span style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--primary-container)' }}>{totalInstitutes}</span>
+        </div>
+
+        {plans.map((p: any) => (
+          <div key={p.planId} className="stat-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>{stat.label}</span>
-              <span className="material-symbols-outlined" style={{ color: stat.color }}>{stat.icon}</span>
+              <span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>{p.name} Plan</span>
+              <span className="material-symbols-outlined" style={{ color: p.colorHint }}>{PLAN_ICONS[p.planId] || 'diamond'}</span>
             </div>
-            <span style={{ fontSize: '2.5rem', fontWeight: 900, color: stat.color }}>{stat.value}</span>
+            <span style={{ fontSize: '2.5rem', fontWeight: 900, color: p.colorHint }}>{planCounts[p.planId] || 0}</span>
           </div>
         ))}
       </div>
@@ -66,6 +78,7 @@ export default function SuperAdminDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           {[
             { icon: 'business', label: 'Manage Institutes', action: () => navigate('/superadmin/institutes') },
+            { icon: 'workspace_premium', label: 'Manage Plans', action: () => navigate('/superadmin/plans') },
             { icon: 'group', label: 'View Users', action: () => navigate('/superadmin/users') },
             { icon: 'analytics', label: 'Platform Analytics', action: () => navigate('/superadmin/analytics') },
             { icon: 'settings', label: 'Settings', action: () => navigate('/superadmin/settings') },
@@ -100,22 +113,31 @@ export default function SuperAdminDashboard() {
                   <th>Institute</th>
                   <th>Owner</th>
                   <th>Plan</th>
+                  <th>Students</th>
                   <th>Created</th>
                 </tr>
               </thead>
               <tbody>
-                {institutes.slice(0, 10).map((inst: any) => (
-                  <tr key={inst._id}>
-                    <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.name}</td>
-                    <td style={{ color: 'var(--on-secondary-container)' }}>{inst.ownerEmail}</td>
-                    <td>
-                      <span className={`badge ${inst.plan === 'pro' ? 'badge-success' : inst.plan === 'starter' ? 'badge-info' : ''}`}>
-                        {(inst.plan || 'free').charAt(0).toUpperCase() + (inst.plan || 'free').slice(1)}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : '—'}</td>
-                  </tr>
-                ))}
+                {institutes.slice(0, 10).map((inst: any) => {
+                  const instPlan = plans.find((p: any) => p.planId === (inst.plan || 'free'));
+                  const planColor = instPlan?.colorHint || '#64748b';
+                  return (
+                    <tr key={inst._id}>
+                      <td style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.name}</td>
+                      <td style={{ color: 'var(--on-secondary-container)' }}>{inst.ownerEmail}</td>
+                      <td>
+                        <span style={{
+                          padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 800,
+                          background: `${planColor}18`, color: planColor, border: `1px solid ${planColor}40`,
+                        }}>
+                          {(inst.plan || 'free').toUpperCase()}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--on-secondary-container)', fontWeight: 600 }}>{inst.studentCount ?? 0} / {inst.studentLimit ?? '∞'}</td>
+                      <td style={{ color: 'var(--on-secondary-container)', fontSize: '0.875rem' }}>{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : '—'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

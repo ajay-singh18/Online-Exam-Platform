@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getInstitutes, createInstitute, updateInstitute, deleteInstitute } from '../api/instituteApi';
+import { getAllPlans } from '../api/planApi';
 import { useToastStore } from '../store/toastStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ConfirmModal from '../components/ConfirmModal';
@@ -8,6 +9,7 @@ export default function InstituteManagement() {
   const addToast = useToastStore((s: any) => s.addToast);
 
   const [institutes, setInstitutes] = useState<any[]>([]);
+  const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
@@ -18,15 +20,16 @@ export default function InstituteManagement() {
   const [newPlan, setNewPlan] = useState('free');
   const [saving, setSaving] = useState(false);
 
-  const fetchInstitutes = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await getInstitutes();
-      setInstitutes(data.institutes || data || []);
-    } catch { addToast('Failed to load institutes', 'error'); }
+      const [instRes, planRes] = await Promise.all([getInstitutes(), getAllPlans()]);
+      setInstitutes(instRes.data.institutes || instRes.data || []);
+      setPlans(planRes.data.plans || []);
+    } catch { addToast('Failed to load data', 'error'); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchInstitutes(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,17 +40,18 @@ export default function InstituteManagement() {
       addToast('Institute created', 'success');
       setShowCreate(false);
       setNewName(''); setNewOwnerEmail(''); setNewPlan('free');
-      fetchInstitutes();
+      fetchData();
     } catch (err: any) {
       addToast(err.response?.data?.message || 'Failed to create', 'error');
     } finally { setSaving(false); }
   };
 
-  const handleUpdatePlan = async (id: string, plan: string) => {
+  const handleUpdatePlan = async (id: string, planId: string) => {
     try {
-      await updateInstitute(id, { plan });
-      setInstitutes(prev => prev.map(i => i._id === id ? { ...i, plan } : i));
-      addToast('Plan updated', 'success');
+      await updateInstitute(id, { plan: planId });
+      // Re-fetch to get updated limits from backend
+      fetchData();
+      addToast('Plan updated — limits applied automatically', 'success');
     } catch { addToast('Update failed', 'error'); }
   };
 
@@ -61,6 +65,11 @@ export default function InstituteManagement() {
     } catch {
       addToast('Failed to delete institute', 'error');
     }
+  };
+
+  const getPlanColor = (planId: string) => {
+    const plan = plans.find((p: any) => p.planId === planId);
+    return plan?.colorHint || '#64748b';
   };
 
   if (loading) return <LoadingSpinner message="Loading institutes..." />;
@@ -94,9 +103,9 @@ export default function InstituteManagement() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label className="label-xs" style={{ color: 'var(--secondary)' }}>Plan</label>
               <select className="ghost-input" value={newPlan} onChange={(e) => setNewPlan(e.target.value)} style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '1rem' }}>
-                <option value="free">Free</option>
-                <option value="starter">Starter</option>
-                <option value="pro">Pro</option>
+                {plans.map((p: any) => (
+                  <option key={p.planId} value={p.planId}>{p.name} — {p.price === 0 ? 'Free' : `₹${p.price}/mo`}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -121,7 +130,12 @@ export default function InstituteManagement() {
                   <p style={{ fontSize: '0.8125rem', color: 'var(--on-secondary-container)', marginTop: '0.25rem' }}>{inst.ownerEmail}</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className={`badge ${inst.plan === 'pro' ? 'badge-success' : inst.plan === 'starter' ? 'badge-info' : ''}`}>
+                  <span style={{
+                    padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 800,
+                    background: `${getPlanColor(inst.plan || 'free')}18`,
+                    color: getPlanColor(inst.plan || 'free'),
+                    border: `1px solid ${getPlanColor(inst.plan || 'free')}40`,
+                  }}>
                     {(inst.plan || 'free').toUpperCase()}
                   </span>
                   <button className="btn-ghost" style={{ padding: '0.25rem', color: 'var(--error)' }} onClick={() => setDeleteTarget(inst)}>
@@ -130,18 +144,25 @@ export default function InstituteManagement() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8125rem' }}>
-                <div><span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Student Limit</span><p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.studentLimit ?? '∞'}</p></div>
-                <div><span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Admin Limit</span><p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.adminLimit ?? '∞'}</p></div>
+                <div><span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Students</span><p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.studentCount ?? 0} / {inst.studentLimit ?? '∞'}</p></div>
+                <div><span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Admins</span><p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.adminCount ?? 0} / {inst.adminLimit ?? '∞'}</p></div>
                 <div><span className="label-xs" style={{ color: 'var(--on-secondary-container)' }}>Created</span><p style={{ fontWeight: 700, color: 'var(--on-surface)' }}>{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : '—'}</p></div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-                {['free', 'starter', 'pro'].map(plan => (
-                  <button key={plan} onClick={() => handleUpdatePlan(inst._id, plan)}
-                    className={inst.plan === plan ? 'btn-primary' : 'btn-secondary'}
-                    style={{ flex: 1, fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center' }}
-                    disabled={inst.plan === plan}
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', flexWrap: 'wrap' }}>
+                {plans.map((p: any) => (
+                  <button key={p.planId} onClick={() => handleUpdatePlan(inst._id, p.planId)}
+                    style={{
+                      flex: 1, minWidth: '70px', fontSize: '0.75rem', padding: '0.5rem', justifyContent: 'center',
+                      border: inst.plan === p.planId ? `2px solid ${p.colorHint}` : '1px solid var(--surface-container-high)',
+                      borderRadius: 'var(--radius-lg)',
+                      background: inst.plan === p.planId ? `${p.colorHint}15` : 'var(--surface-container)',
+                      color: inst.plan === p.planId ? p.colorHint : 'var(--on-secondary-container)',
+                      fontWeight: 800, cursor: inst.plan === p.planId ? 'default' : 'pointer',
+                      opacity: inst.plan === p.planId ? 1 : 0.8,
+                    }}
+                    disabled={inst.plan === p.planId}
                   >
-                    {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                    {p.name}
                   </button>
                 ))}
               </div>

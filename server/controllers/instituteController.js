@@ -5,6 +5,7 @@ const Question = require('../models/Question');
 const Attempt = require('../models/Attempt');
 const Batch = require('../models/Batch');
 const Document = require('../models/Document');
+const Plan = require('../models/Plan');
 
 /**
  * GET /api/institutes
@@ -39,14 +40,17 @@ const getInstitutes = async (req, res, next) => {
  */
 const createInstitute = async (req, res, next) => {
   try {
-    const { name, ownerEmail, plan, studentLimit, adminLimit } = req.body;
+    const { name, ownerEmail, plan } = req.body;
+
+    // Look up plan limits from DB
+    const dbPlan = await Plan.findOne({ planId: plan || 'free' });
 
     const institute = await Institute.create({
       name,
       ownerEmail,
-      plan,
-      studentLimit,
-      adminLimit,
+      plan: plan || 'free',
+      studentLimit: dbPlan?.studentLimit || 50,
+      adminLimit: dbPlan?.adminLimit || 2,
     });
 
     res.status(201).json({ success: true, institute });
@@ -61,7 +65,18 @@ const createInstitute = async (req, res, next) => {
  */
 const updateInstitute = async (req, res, next) => {
   try {
-    const institute = await Institute.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+
+    // If the plan is being changed, auto-apply limits from the Plan DB
+    if (updateData.plan) {
+      const dbPlan = await Plan.findOne({ planId: updateData.plan });
+      if (dbPlan) {
+        updateData.studentLimit = dbPlan.studentLimit;
+        updateData.adminLimit = dbPlan.adminLimit;
+      }
+    }
+
+    const institute = await Institute.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
