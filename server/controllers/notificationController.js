@@ -48,8 +48,22 @@ const markAllAsRead = async (req, res, next) => {
   }
 };
 
+/**
+ * DELETE /api/notifications
+ * Clear all notifications for the current user.
+ */
+const clearAllNotifications = async (req, res, next) => {
+  try {
+    await Notification.deleteMany({ recipient: req.user._id });
+    res.json({ success: true, message: 'All notifications cleared' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getNotifications,
   markAsRead,
-  markAllAsRead
+  markAllAsRead,
+  clearAllNotifications
 };

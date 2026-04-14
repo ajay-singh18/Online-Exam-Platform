@@ -28,9 +28,13 @@ const getExamSummary = async (req, res, next) => {
           avgScore: 0,
           avgPercentage: 0,
           passRate: 0,
+          highestScore: 0,
           scoreDistribution: [],
-          perQuestionAccuracy: [],
-          avgTimePerQuestion: [],
+          questionAccuracy: [],
+          timePerQuestion: [],
+          flaggedAttemptsCount: 0,
+          violationSummary: [],
+          topicPerformance: [],
         },
       });
     }
@@ -60,14 +64,13 @@ const getExamSummary = async (req, res, next) => {
     /* Per-question accuracy */
     const questionAccuracy = questions.map((q, idx) => {
       let correct = 0;
-      let total = 0;
+      let total = attempts.length;
 
       attempts.forEach((attempt) => {
         const resp = attempt.responses.find(
           (r) => r.questionId?.toString() === q._id.toString()
         );
         if (resp && resp.selectedOptions.length > 0) {
-          total++;
           const correctIndices = q.options
             .map((opt, idx) => (opt.isCorrect ? idx : -1))
             .filter((i) => i !== -1);
@@ -199,7 +202,7 @@ const getPlatformSummary = async (req, res, next) => {
     }));
 
     const totalStudents = await User.countDocuments({ role: 'student' });
-    const totalAdmins = await User.countDocuments({ role: 'admin' });
+    const totalAdmins = await User.countDocuments({ role: { $in: ['admin', 'superAdmin'] } });
 
     const totalExams = await Exam.countDocuments();
     const totalAttempts = await Attempt.countDocuments({ submittedAt: { $ne: null } });

@@ -23,6 +23,7 @@ interface NotificationState {
   fetchNotifications: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  clearAll: () => Promise<void>;
 }
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
@@ -108,6 +109,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       }));
     } catch (err) {
       console.error('Failed to mark all as read', err);
+    }
+  },
+
+  clearAll: async () => {
+    try {
+      await api.delete('/notifications');
+      set({ notifications: [], unreadCount: 0 });
+    } catch (err) {
+      console.error('Failed to clear notifications', err);
     }
   }
 }));

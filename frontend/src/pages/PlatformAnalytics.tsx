@@ -129,7 +129,7 @@ export default function PlatformAnalytics() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[
                 { role: 'Students', count: data.totalStudents },
-                { role: 'Admins', count: data.totalAdmins }
+                { role: 'Admins & Staff', count: data.totalAdmins }
               ]} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--surface-container-high)" />
                 <XAxis type="number" stroke="var(--outline)" />

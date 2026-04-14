@@ -8,6 +8,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const CHART_COLORS = ['#0053db', '#00174b', '#4EDEA3', '#F59E0B', '#6366F1', '#EC4899'];
 
+const VIOLATION_LABELS: Record<string, string> = {
+  tabSwitch: 'Tab Switching',
+  fullscreenExit: 'Exited Fullscreen',
+  copyPaste: 'Copy/Paste Used',
+  noFace: 'Face Not Detected',
+  multipleFaces: 'Multiple Faces',
+  lookingAway: 'Looking Away'
+};
+
 export default function ExamAnalytics() {
   const { examId: routeExamId } = useParams();
 
@@ -54,6 +63,10 @@ export default function ExamAnalytics() {
   const topicPerformance = summary?.topicPerformance || [];
   const flaggedAttemptsCount = summary?.flaggedAttemptsCount || 0;
 
+  const currentExam = exams.find((e: any) => e._id === selectedExamId);
+  const enrolledCount = currentExam?.allowedStudents?.length || 0;
+  const submissionRate = enrolledCount > 0 ? Math.round(((summary?.totalAttempts || 0) / enrolledCount) * 100) : 0;
+
   return (
     <div style={{ padding: '2rem', maxWidth: '80rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -75,7 +88,8 @@ export default function ExamAnalytics() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
             {[
               { label: 'Total Attempts', value: summary.totalAttempts ?? 0, icon: 'group' },
-              { label: 'Avg Score', value: `${summary.avgScore ?? 0}%`, icon: 'trending_up' },
+              { label: 'Submission Rate', value: `${submissionRate}%`, icon: 'how_to_reg' },
+              { label: 'Avg Score', value: `${summary.avgPercentage ?? 0}%`, icon: 'trending_up' },
               { label: 'Pass Rate', value: `${summary.passRate ?? 0}%`, icon: 'check_circle' },
               { label: 'Highest Score', value: `${summary.highestScore ?? 0}%`, icon: 'emoji_events' },
               { label: 'Flagged Attempts', value: flaggedAttemptsCount, icon: 'warning' },
@@ -195,7 +209,7 @@ export default function ExamAnalytics() {
                 <BarChart data={violationSummary} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--surface-container-high)" />
                   <XAxis type="number" stroke="var(--on-secondary-container)" fontSize={12} />
-                  <YAxis dataKey="type" type="category" stroke="var(--on-secondary-container)" fontSize={11} fontWeight={600} width={100} />
+                  <YAxis dataKey="type" type="category" stroke="var(--on-secondary-container)" fontSize={11} fontWeight={600} width={130} tickFormatter={(val) => VIOLATION_LABELS[val] || val} />
                   <Tooltip 
                     cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }}
                     content={({ active, payload }) => {
@@ -203,7 +217,7 @@ export default function ExamAnalytics() {
                         const data = payload[0].payload;
                         return (
                           <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid var(--error-container)' }}>
-                            <p style={{ fontWeight: 800, color: 'var(--error-container)', marginBottom: '0.25rem' }}>{data.type}</p>
+                            <p style={{ fontWeight: 800, color: 'var(--error-container)', marginBottom: '0.25rem' }}>{VIOLATION_LABELS[data.type] || data.type}</p>
                             <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--on-surface)' }}>{data.count} occurrences</p>
                           </div>
                         );

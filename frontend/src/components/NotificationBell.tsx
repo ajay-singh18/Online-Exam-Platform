@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore'; // Assuming authStore exists 
 import { formatDistanceToNow } from 'date-fns';
 
 export default function NotificationBell() {
-  const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, initSocket } = useNotificationStore();
+  const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead, clearAll, initSocket } = useNotificationStore();
   const { user } = useAuthStore() as any;
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -85,15 +85,26 @@ export default function NotificationBell() {
             alignItems: 'center'
           }}>
             <h3 style={{ fontSize: '0.875rem', fontWeight: 800 }}>Notifications</h3>
-            {unreadCount > 0 && (
-              <button 
-                className="btn-ghost" 
-                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                onClick={markAllAsRead}
-              >
-                Mark all read
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {unreadCount > 0 && (
+                <button 
+                  className="btn-ghost" 
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  onClick={markAllAsRead}
+                >
+                  Mark all read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button 
+                  className="btn-ghost" 
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: 'var(--error)' }}
+                  onClick={clearAll}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ overflowY: 'auto', flex: 1 }}>
