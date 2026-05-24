@@ -48,7 +48,7 @@ html {
 /* --- Page Container --- */
 .landing-page {
   overflow-x: hidden;
-  background: var(--surface);
+  background: transparent;
   min-height: 100vh;
 }
 
@@ -862,12 +862,21 @@ html {
    RESPONSIVE
    ============================================ */
 @media (max-width: 1024px) {
-  .landing-features__grid {
+  .landing-features__grid,
+  .landing-pricing__grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .landing-footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .landing-how__steps::before {
+    display: none;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   /* Nav */
   .landing-nav__links {
     display: none;

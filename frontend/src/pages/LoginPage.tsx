@@ -8,7 +8,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'student' | 'admin'>('student');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ export default function LoginPage() {
     try {
       const { data } = await loginUser({ email, password });
       setAuth(data.user, data.accessToken);
-      
+
       const redirectMap: Record<string, string> = {
         superAdmin: '/superadmin',
         admin: '/admin',
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1.5rem', background: 'var(--surface)' }}>
+      <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem', background: 'transparent' }}>
         <div style={{ maxWidth: '28rem', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
@@ -99,7 +99,7 @@ export default function LoginPage() {
           <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--surface-container-high)' }}>
             <p style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--secondary)', marginBottom: '1rem', textAlign: 'center' }}>New to AcademicPro?</p>
             <button className="btn-secondary" style={{ width: '100%' }} onClick={() => navigate('/register')}>
-              Register Your Institution
+              Register Your Account
             </button>
           </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <footer style={{ background: 'var(--surface)', padding: '1.5rem', borderTop: '1px solid var(--surface-container-high)' }}>
+      <footer style={{ background: 'transparent', padding: '1.5rem', borderTop: '1px solid var(--surface-container-high)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', maxWidth: '90rem', margin: '0 auto', textAlign: 'center' }}>
           <p className="label-xs" style={{ color: 'var(--outline)' }}>© 2024 AcademicPro Proctoring Systems.</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>

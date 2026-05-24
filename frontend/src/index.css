@@ -60,6 +60,12 @@
   /* === Gradients === */
   --auth-gradient: linear-gradient(135deg, #0053db 0%, #00174b 100%);
   --progress-gradient: linear-gradient(90deg, #0053db 0%, #00174b 100%);
+  --page-bg-gradient: 
+    radial-gradient(circle at top left, #e0e7ff, transparent 60%),
+    radial-gradient(circle at top right, #f3e8ff, transparent 60%),
+    radial-gradient(circle at bottom left, #dbeafe, transparent 60%),
+    radial-gradient(circle at bottom right, #eef2ff, transparent 60%),
+    #ffffff;
 
   /* === Ambient Shadows (from design system) === */
   --shadow-ambient: 0 20px 40px rgba(19, 27, 46, 0.06);
@@ -102,7 +108,8 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--background);
+  background: var(--page-bg-gradient);
+  background-attachment: fixed;
   color: var(--on-surface);
   min-height: 100vh;
   line-height: 1.5;

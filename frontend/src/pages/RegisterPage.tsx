@@ -133,7 +133,7 @@ export default function RegisterPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem', background: 'var(--surface)' }}>
+      <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem', background: 'transparent' }}>
         <div style={{ maxWidth: '30rem', width: '100%', margin: '0 auto' }}>
 
           {/* Header */}
@@ -308,7 +308,7 @@ export default function RegisterPage() {
       </main>
 
       {/* Footer */}
-      <footer style={{ background: 'var(--surface)', padding: '1.5rem', borderTop: '1px solid var(--surface-container-high)' }}>
+      <footer style={{ background: 'transparent', padding: '1.5rem', borderTop: '1px solid var(--surface-container-high)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', maxWidth: '90rem', margin: '0 auto', textAlign: 'center' }}>
           <p className="label-xs" style={{ color: 'var(--outline)' }}>© 2024 AcademicPro Proctoring Systems.</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
