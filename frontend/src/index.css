@@ -169,7 +169,10 @@ textarea:focus {
   box-shadow: 0 4px 12px rgba(19, 27, 46, 0.06);
   border-radius: var(--radius-full) !important;
   padding: 1rem 1.5rem;
-  font-weight: 500;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--on-surface);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
@@ -527,6 +530,10 @@ textarea:focus {
 }
 
 /* === Focus ring animation === */
+*:has(> .input-underline) {
+  position: relative;
+}
+
 .input-underline {
   position: absolute;
   bottom: 0;

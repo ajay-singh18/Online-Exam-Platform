@@ -76,11 +76,35 @@ export default function QuestionEditor() {
   }, [editId]);
 
   useEffect(() => {
-    if (type === 'truefalse') {
-      setOptions([{ text: 'True', isCorrect: false }, { text: 'False', isCorrect: false }]);
-    } else if (type === 'fillblank') {
-      setOptions([{ text: '', isCorrect: true }]);
-    }
+    setOptions(prev => {
+      if (type === 'truefalse') {
+        if (prev.length === 2 && prev[0].text === 'True') return prev;
+        return [{ text: 'True', isCorrect: false }, { text: 'False', isCorrect: false }];
+      } else if (type === 'fillblank') {
+        if (prev.length === 1 && prev[0].isCorrect === true) return prev;
+        return [{ text: '', isCorrect: true }];
+      } else if (type === 'mcq' || type === 'msq') {
+        if (prev.length < 2 || (prev.length === 2 && prev[0].text === 'True')) {
+          return [
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false },
+            { text: '', isCorrect: false },
+          ];
+        } else if (type === 'mcq') {
+          let foundCorrect = false;
+          return prev.map(o => {
+            if (o.isCorrect && !foundCorrect) {
+              foundCorrect = true;
+              return o;
+            }
+            return { ...o, isCorrect: false };
+          });
+        }
+        return prev;
+      }
+      return prev;
+    });
   }, [type]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,7 +118,9 @@ export default function QuestionEditor() {
   const handleOptionChange = (index: number, field: 'text' | 'isCorrect', value: any) => {
     setOptions(prev => prev.map((o, i) => {
       if (i !== index) {
-        if (field === 'isCorrect' && type === 'mcq' && value === true) return { ...o, isCorrect: false };
+        if (field === 'isCorrect' && (type === 'mcq' || type === 'truefalse') && value === true) {
+          return { ...o, isCorrect: false };
+        }
         return o;
       }
       return { ...o, [field]: value };

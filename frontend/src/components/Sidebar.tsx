@@ -58,12 +58,12 @@ export default function Sidebar({ links, portalName, portalSubtitle, isOpen, onC
         ))}
       </nav>
 
-      <div style={{ marginTop: 'auto', padding: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
 
         <button
           onClick={handleLogout}
           className="sidebar-link danger"
-          style={{ border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
+          style={{ border: 'none', cursor: 'pointer', textAlign: 'left' }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>
           Logout
