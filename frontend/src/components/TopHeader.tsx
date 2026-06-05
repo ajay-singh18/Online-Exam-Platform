@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import NotificationBell from './NotificationBell';
 
 interface TopHeaderProps {
@@ -10,6 +11,7 @@ interface TopHeaderProps {
 export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }: TopHeaderProps) {
   const user = useAuthStore((s: any) => s.user);
   const navigate = useNavigate();
+  const { toggleDesktopSidebar, desktopSidebarCollapsed } = useUIStore();
 
   const initials = user?.name
     ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
@@ -24,19 +26,33 @@ export default function TopHeader({ title = 'AcademicPro Proctor', onMenuClick }
   return (
     <header className="top-header glass-panel">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {/* Mobile Menu Toggle */}
         <button 
           onClick={onMenuClick}
           className="mobile-only"
           style={{ 
-            padding: '0.25rem', 
-            background: 'none', 
-            border: 'none',
-            color: 'var(--primary-container)',
-            cursor: 'pointer'
+            padding: '0.25rem', background: 'none', border: 'none',
+            color: 'var(--primary-container)', cursor: 'pointer'
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>menu</span>
         </button>
+
+        {/* Desktop Sidebar Toggle */}
+        <button 
+          onClick={toggleDesktopSidebar}
+          className="desktop-only"
+          style={{ 
+            padding: '0.25rem', background: 'none', border: 'none',
+            color: 'var(--primary-container)', cursor: 'pointer',
+            display: 'flex', alignItems: 'center'
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>
+            {desktopSidebarCollapsed ? 'menu' : 'menu_open'}
+          </span>
+        </button>
+
         <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.05em', color: 'var(--primary-container)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {title}
         </span>

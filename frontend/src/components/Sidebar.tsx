@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 
 interface SidebarLink {
   label: string;
@@ -18,6 +19,7 @@ interface SidebarProps {
 export default function Sidebar({ links, portalName, portalSubtitle, isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const logout = useAuthStore((s: any) => s.logout);
+  const desktopSidebarCollapsed = useUIStore((s: any) => s.desktopSidebarCollapsed);
 
   const handleLogout = () => {
     logout();
@@ -31,7 +33,7 @@ export default function Sidebar({ links, portalName, portalSubtitle, isOpen, onC
         className={`sidebar-overlay mobile-only ${isOpen ? 'open' : ''}`}
         onClick={onClose}
       />
-      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${isOpen ? 'open' : ''} ${desktopSidebarCollapsed ? 'collapsed' : ''}`}>
       <div style={{ padding: '1rem 1.5rem', marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '1.125rem', fontWeight: 900, color: 'var(--primary-container)', letterSpacing: '-0.05em' }}>
           {portalName}
@@ -60,7 +62,7 @@ export default function Sidebar({ links, portalName, portalSubtitle, isOpen, onC
 
         <button
           onClick={handleLogout}
-          className="sidebar-link"
+          className="sidebar-link danger"
           style={{ border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>logout</span>

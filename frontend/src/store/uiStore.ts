@@ -4,10 +4,14 @@ interface UIState {
   sidebarOpen: boolean;
   setSidebarOpen: (isOpen: boolean) => void;
   toggleSidebar: () => void;
+  desktopSidebarCollapsed: boolean;
+  toggleDesktopSidebar: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
   sidebarOpen: false,
   setSidebarOpen: (isOpen: boolean) => set({ sidebarOpen: isOpen }),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  desktopSidebarCollapsed: false,
+  toggleDesktopSidebar: () => set((state) => ({ desktopSidebarCollapsed: !state.desktopSidebarCollapsed })),
 }));
