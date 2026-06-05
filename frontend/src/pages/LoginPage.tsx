@@ -39,7 +39,7 @@ export default function LoginPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem', background: 'transparent' }}>
-        <div style={{ maxWidth: '28rem', width: '100%' }}>
+        <div className="auth-card" style={{ maxWidth: '28rem', width: '100%' }}>
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
               <span className="material-symbols-outlined filled" style={{ color: 'var(--on-primary-container)', fontSize: '2rem' }}>shield_lock</span>
@@ -60,8 +60,8 @@ export default function LoginPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label className="label-xs" style={{ color: 'var(--secondary)' }} htmlFor="email">Institutional Email</label>
               <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>mail</span>
-                <input className="ghost-input" id="email" type="email" placeholder="name@university.edu" style={{ borderRadius: 'var(--radius-sm)' }} value={email} onChange={e => setEmail(e.target.value)} required />
+                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem', pointerEvents: 'none', zIndex: 1 }}>mail</span>
+                <input className="ghost-input" id="email" type="email" placeholder="name@university.edu" style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem' }} value={email} onChange={e => setEmail(e.target.value)} required />
                 <div className="input-underline" />
               </div>
             </div>
@@ -72,13 +72,13 @@ export default function LoginPage() {
                 <a href="#" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--on-primary-container)', textDecoration: 'none' }}>Forgot Access Key?</a>
               </div>
               <div style={{ position: 'relative' }}>
-                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>lock</span>
-                <input className="ghost-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••••••" style={{ borderRadius: 'var(--radius-sm)' }} value={password} onChange={e => setPassword(e.target.value)} required />
+                <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem', pointerEvents: 'none', zIndex: 1 }}>lock</span>
+                <input className="ghost-input" id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••••••" style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem', paddingRight: '3rem' }} value={password} onChange={e => setPassword(e.target.value)} required />
                 <div className="input-underline" />
                 <span
                   className="material-symbols-outlined"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', cursor: 'pointer', fontSize: '1.25rem' }}
+                  style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', cursor: 'pointer', fontSize: '1.25rem', zIndex: 1 }}
                 >
                   {showPassword ? 'visibility_off' : 'visibility'}
                 </span>
@@ -103,17 +103,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div style={{ marginTop: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--tertiary-container)', padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-full)' }}>
-              <span className="material-symbols-outlined filled" style={{ fontSize: '0.875rem', color: 'var(--on-tertiary-container)' }}>verified_user</span>
-              <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--on-tertiary-container)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>AES-256 Encrypted Tunnel</span>
-            </div>
-            <div style={{ display: 'flex', gap: '1.5rem', opacity: 0.4 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.875rem' }}>fingerprint</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.875rem' }}>face_retouching_natural</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.875rem' }}>location_on</span>
-            </div>
-          </div>
+
         </div>
       </main>
 

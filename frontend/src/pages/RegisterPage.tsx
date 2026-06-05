@@ -114,7 +114,7 @@ export default function RegisterPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <label className="label-xs" style={{ color: 'var(--secondary)' }} htmlFor={id}>{label}</label>
       <div style={{ position: 'relative' }}>
-        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem' }}>{icon}</span>
+        <span className="material-symbols-outlined" style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', fontSize: '1.25rem', pointerEvents: 'none', zIndex: 1 }}>{icon}</span>
         <input
           className="ghost-input"
           id={id}
@@ -123,7 +123,7 @@ export default function RegisterPage() {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required
-          style={{ borderRadius: 'var(--radius-sm)' }}
+          style={{ borderRadius: 'var(--radius-sm)', paddingLeft: '3rem', paddingRight: extra ? '3rem' : '1.5rem' }}
         />
         <div className="input-underline" />
         {extra}
@@ -134,7 +134,7 @@ export default function RegisterPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 1.5rem', background: 'transparent' }}>
-        <div style={{ maxWidth: '30rem', width: '100%', margin: '0 auto' }}>
+        <div className="auth-card" style={{ maxWidth: '30rem', width: '100%', margin: '0 auto' }}>
 
           {/* Header */}
           <div className="text-center-mobile" style={{ marginBottom: '2rem' }}>
@@ -222,7 +222,7 @@ export default function RegisterPage() {
               <span
                 className="material-symbols-outlined"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', cursor: 'pointer', fontSize: '1.25rem' }}
+                style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)', cursor: 'pointer', fontSize: '1.25rem', zIndex: 1 }}
               >
                 {showPassword ? 'visibility_off' : 'visibility'}
               </span>
@@ -292,18 +292,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {/* Security badge */}
-          <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--tertiary-container)', padding: '0.375rem 0.75rem', borderRadius: 'var(--radius-full)' }}>
-              <span className="material-symbols-outlined filled" style={{ fontSize: '0.875rem', color: 'var(--on-tertiary-container)' }}>verified_user</span>
-              <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--on-tertiary-container)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>AES-256 Encrypted Registration</span>
-            </div>
-            <div style={{ display: 'flex', gap: '1.5rem', opacity: 0.4 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>fingerprint</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>face_retouching_natural</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>enhanced_encryption</span>
-            </div>
-          </div>
+
         </div>
       </main>
 
