@@ -162,17 +162,23 @@ textarea:focus {
 
 /* === Ghost Input === */
 .ghost-input {
-  background: var(--surface-container-low);
-  border: none;
-  padding: 1rem 1rem 1rem 3rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.06);
+  border-radius: var(--radius-full) !important;
+  padding: 1rem 1.5rem;
   font-weight: 500;
   color: var(--on-surface);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
 }
 
 .ghost-input:focus {
-  background: var(--surface-container-high);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.08);
 }
 
 .ghost-input::placeholder {
@@ -270,26 +276,33 @@ textarea:focus {
 .sidebar-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  margin: 0 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #475569;
-  border-radius: var(--radius-lg);
-  transition: all 0.2s ease;
+  padding: 0.875rem 1.25rem;
+  margin: 0.25rem 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--on-secondary-container);
+  border-radius: var(--radius-full);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   gap: 0.75rem;
+  border: 1px solid transparent;
 }
 
 .sidebar-link:hover {
   color: var(--primary-container);
-  background: rgba(218, 226, 253, 0.5);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.05);
+  transform: translateX(4px);
 }
 
 .sidebar-link.active {
-  background: var(--secondary-container);
-  color: var(--primary-container);
-  font-weight: 600;
+  background: var(--auth-gradient);
+  color: var(--on-primary);
+  box-shadow: 0 4px 16px rgba(0, 83, 219, 0.3);
+  transform: translateX(4px);
 }
 
 /* === Main Content Offset === */
@@ -317,58 +330,88 @@ textarea:focus {
 .btn-primary {
   background: var(--auth-gradient);
   color: var(--on-primary);
-  padding: 0.875rem 2rem;
+  padding: 0.875rem 2.25rem;
   font-weight: 700;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 83, 219, 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 83, 219, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-  transform: scale(1.01);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 83, 219, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 83, 219, 0.3);
 }
 
 .btn-secondary {
-  background: var(--surface-container-high);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--on-primary-fixed);
-  padding: 0.875rem 2rem;
+  padding: 0.875rem 2.25rem;
   font-weight: 700;
-  border-radius: var(--radius-md);
-  border: none;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.06);
 }
 
 .btn-secondary:hover {
-  background: var(--surface-container-highest);
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(19, 27, 46, 0.1);
+  border-color: rgba(255, 255, 255, 1);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(19, 27, 46, 0.05);
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--on-primary-container);
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1.25rem;
   font-weight: 800;
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  border: none;
-  border-radius: var(--radius-lg);
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-ghost:hover {
-  background: var(--surface-container-high);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-ghost:active {
+  transform: translateY(0);
 }
 
 /* === Badge / Chip === */
@@ -615,19 +658,26 @@ textarea:focus {
 
 /* === React Quill Overrides === */
 .ql-toolbar.ql-snow {
-  background: var(--surface-container-low);
-  border: none !important;
-  border-bottom: 2px solid var(--surface-container-highest) !important;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
-  padding: 0.75rem 1rem !important;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.06);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0 !important;
+  padding: 1rem 1.5rem !important;
   font-family: inherit !important;
 }
 
 .ql-container.ql-snow {
-  border: none !important;
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl) !important;
-  background: var(--surface-container-lowest);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-top: none !important;
+  border-radius: 0 0 var(--radius-2xl) var(--radius-2xl) !important;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   font-family: inherit !important;
+  box-shadow: 0 4px 12px rgba(19, 27, 46, 0.06);
 }
 
 .ql-editor {
