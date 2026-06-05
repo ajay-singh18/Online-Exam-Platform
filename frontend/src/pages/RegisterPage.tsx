@@ -139,8 +139,8 @@ export default function RegisterPage() {
           {/* Header */}
           <div className="text-center-mobile" style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.625rem', marginBottom: '1.5rem' }}>
-              <span className="material-symbols-outlined filled" style={{ color: 'var(--on-primary-container)', fontSize: '2rem' }}>shield_lock</span>
-              <span style={{ fontSize: '1.375rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--primary-container)' }}>AcademicPro</span>
+              <img src="/favicon.png" alt="AcademicPro Logo" style={{ width: '2.5rem', height: '2.5rem', objectFit: 'contain' }} />
+              <span style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--primary-container)' }}>AcademicPro</span>
             </div>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--on-surface)', letterSpacing: '-0.025em', marginBottom: '0.5rem', textAlign: 'center' }}>Create Your Account</h3>
             <p style={{ color: 'var(--on-secondary-container)', fontWeight: 500, textAlign: 'center' }}>Select your role and complete registration</p>

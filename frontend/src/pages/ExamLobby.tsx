@@ -64,7 +64,7 @@ export default function ExamLobby() {
         {/* Header */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <span className="material-symbols-outlined filled" style={{ color: 'var(--primary-container)', fontSize: '2rem' }}>shield_lock</span>
+            <img src="/favicon.png" alt="AcademicPro Logo" style={{ width: '2.5rem', height: '2.5rem', objectFit: 'contain' }} />
             <span style={{ fontWeight: 900, color: 'var(--primary-container)', textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.875rem' }}>Proctored Assessment</span>
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--primary-container)', letterSpacing: '-0.035em' }}>

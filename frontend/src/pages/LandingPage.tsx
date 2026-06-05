@@ -85,7 +85,7 @@ export default function LandingPage() {
       {/* ━━━ NAVBAR ━━━ */}
       <nav className={`landing-nav${scrolled ? ' scrolled' : ''}`}>
         <a href="/" className="landing-nav__logo" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-          <span className="material-symbols-outlined filled landing-nav__logo-icon">shield_lock</span>
+          <img src="/favicon.png" alt="AcademicPro Logo" className="landing-nav__logo-icon" style={{ width: '2.5rem', height: '2.5rem', objectFit: 'contain' }} />
           <span className="landing-nav__logo-text">AcademicPro</span>
         </a>
 
@@ -344,7 +344,7 @@ export default function LandingPage() {
           <div className="landing-footer__grid">
             <div>
               <div className="landing-footer__brand-name">
-                <span className="material-symbols-outlined filled" style={{ fontSize: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>shield_lock</span>
+                <img src="/favicon.png" alt="AcademicPro Logo" style={{ width: '2rem', height: '2rem', objectFit: 'contain', opacity: 0.9 }} />
                 AcademicPro
               </div>
               <p className="landing-footer__brand-desc">
