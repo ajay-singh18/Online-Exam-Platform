@@ -117,7 +117,7 @@ export default function AdminExams() {
           </p>
         </div>
       ) : (
-        <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', overflow: 'hidden', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
+        <div style={{ background: 'var(--surface-container-lowest)', borderRadius: 'var(--radius-2xl)', overflowX: 'auto', boxShadow: '0 8px 32px rgba(30,58,138,0.05)' }}>
           <table className="data-table">
             <thead>
               <tr>

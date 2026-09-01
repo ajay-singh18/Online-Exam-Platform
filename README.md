@@ -7,12 +7,55 @@ A comprehensive, multi-role SaaS platform where institutes (coaching centres, co
 - **Multi-Role System**: Super Admin, Admin (Institute/Teacher), and Student roles.
 - **Robust Exam Engine**:
   - Secure, timed exams with server-side time tracking.
-  - Proctored environment: detects tab switching and fullscreen exits.
+  - **AI Proctoring Engine**: Client-side computer vision using TensorFlow.js & MediaPipe to detect multiple faces, missing faces, head turning (gaze tracking), and cell phones.
+  - Basic Proctoring: Detects tab switching and fullscreen exits.
   - Automatic submission when the timer runs out.
   - Randomize questions and options.
 - **Rich Question Bank**: Supports MCQ, MSQ, True/False, and Fill in the Blanks with rich text and image support.
 - **Analytics & Reporting**: Detailed insights into average scores, pass rates, question accuracy, and more.
 - **Modern User Interface**: Responsive, interactive UI designed with Tailwind CSS, shadcn/ui, and specialized design systems.
+
+## 🏗 Architecture
+
+```mermaid
+graph TD
+    subgraph Clients
+        A[React SPA frontend]
+        A1(Zustand State)
+        A2(React Router)
+        A -.-> A1
+        A -.-> A2
+    end
+
+    subgraph "Backend (Node.js & Express)"
+        B[Express API server]
+        B1(Controllers & Routes)
+        B2(JWT Auth Middleware)
+        B -.-> B1
+        B -.-> B2
+    end
+
+    subgraph "Data & External Services"
+        C[(MongoDB Database)]
+        D[Cloudinary Image Storage]
+        E[NodeMailer Emails]
+    end
+
+    A -->|REST API Calls HTTP/JSON| B
+    B -->|Mongoose Queries| C
+    B -->|Image Uploads| D
+    B -->|Send Emails| E
+    
+    classDef react fill:#61dafb,color:#000,stroke:#333,stroke-width:1px
+    classDef node fill:#68a063,color:#fff,stroke:#333,stroke-width:1px
+    classDef db fill:#47A248,color:#fff,stroke:#333,stroke-width:1px
+    classDef ext fill:#f9a826,color:#000,stroke:#333,stroke-width:1px
+
+    class A,A1,A2 react
+    class B,B1,B2 node
+    class C db
+    class D,E ext
+```
 
 ## 🛠 Tech Stack
 
@@ -24,6 +67,7 @@ A comprehensive, multi-role SaaS platform where institutes (coaching centres, co
 - Tailwind CSS & shadcn/ui
 - Recharts (Analytics)
 - Quill.js (Rich Text Editor)
+- TensorFlow.js & Google MediaPipe (Client-side AI Computer Vision)
 
 **Backend**:
 
